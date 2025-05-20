@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{ .Site.Title }}</title>
+  {{/* Include CSS here, like Tailwind-generated or your own CSS */}}
+  <link rel="stylesheet" href="{{ "css/taiwind.css" | relURL }}">
+  <link rel="stylesheet" href="{{ "css/shared.css" | relURL }}">
+  <link rel="stylesheet" href="{{ "css/home.css" | relURL }}">
+</head>
+<body class="bg-gray-100 text-gray-900">
+
+  <header class="p-6 bg-blue-600 text-white">
+    <h1 class="text-4xl font-bold">{{ .Site.Title }}</h1>
+    <nav class="mt-2">
+      <a href="/" class="mr-4 hover:underline">Home</a>
+      <a href="/about" class="mr-4 hover:underline">About</a>
+      <a href="/contact" class="hover:underline">Contact</a>
+    </nav>
+  </header>
+
+  <div class="w-full">
+    <div class="w-full lg:w-1/2">
+        <h1>testing taiwind</h1>
+    </div>
+    <div class="w-full lg:w-1/2">
+        <h1>testing taiwind</h1>
+    </div>
+  </div>
+
+  <main class="container mx-auto p-6">
+    <section>
+      <h2 class="text-3xl font-semibold mb-4">Welcome to {{ .Site.Title }}</h2>
+      <p class="mb-4">This is your homepage content. You can edit this content in <code>layouts/index.html</code>.</p>
+
+      {{ if .Content }}
+        <article class="prose max-w-none">
+          {{ .Content }}
+        </article>
+      {{ else }}
+        <p>No content found on the homepage.</p>
+      {{ end }}
+    </section>
+  </main>
+
+  <footer class="p-6 bg-gray-800 text-gray-300 text-center">
+    &copy; {{ now.Format "2006" }} {{ .Site.Title }}. All rights reserved.
+  </footer>
+
+</body>
+</html>

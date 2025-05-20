@@ -1,0 +1,73 @@
+:root {
+  --blue: blue;
+  --green: green;
+  --white: white;
+  --light: light;
+  --mid: #c0c0c0;
+  --darkGrey: #41414111;
+  --black: #000;
+}
+
+h1, h2, h3, h4, h6, p {
+  color: unset;
+}
+
+h1,
+.heading-h1 {
+  font-size: 28px;
+  line-height: 32px;
+  font-weight: 700;
+}
+@media (min-width: 992px) {
+  h1,
+  .heading-h1 {
+    font-size: 40px;
+    line-height: 48px;
+  }
+}
+
+.btn-primary {
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  padding: 12px 18px;
+  font-size: 16px;
+}
+.btn-primary.btn-small {
+  padding: 8px 12px;
+  font-size: 14px;
+}
+.btn-primary.btn-large {
+  padding: 20px 40px;
+  font-size: 16px;
+}
+.btn-primary.btn-full {
+  width: 100%;
+  font-size: 16px;
+}
+
+a {
+  font-weight: 700;
+  color: var(--black);
+}
+a.underlined {
+  text-decoration: underline;
+}
+
+.header {
+  background-color: red;
+}
+
+.mobile-nav {
+  background-color: green;
+}
+
+.mobile-nav-active .mobile-nav {
+  background-color: blue;
+}
+
+footer {
+  background-color: yellow;
+}/*# sourceMappingURL=shared.css.map */
