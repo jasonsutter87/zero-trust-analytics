@@ -1,5 +1,6 @@
 #index-hero-section {
   padding: 25px 0;
+  background-color: green;
 }
 @media (min-width: 768px) {
   #index-hero-section {

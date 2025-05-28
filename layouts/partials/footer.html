@@ -1,6 +1,6 @@
 
 <div>
-  {{ if isset .Params "cta" }}
+ {{ if or (not (isset .Params "cta")) .Params.cta }}
       {{ partial "cta" . }}
   {{ end }}
 

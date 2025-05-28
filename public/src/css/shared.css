@@ -75,6 +75,7 @@ footer {
 html, body {
   height: 100%;
   margin: 0;
+  font-family: "Roboto", sans-serif;
 }
 
 #main-container {
@@ -96,4 +97,58 @@ main {
   padding: 0;
   position: absolute;
   width: 1px;
+}
+
+.ul-reset {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+.check-list ul {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+.check-list li {
+  position: relative;
+  margin-bottom: 16px;
+  margin-left: 30px;
+  line-height: 19px;
+}
+.check-list li::before {
+  display: inline-block;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  content: "\f00c";
+  font-size: 1rem;
+  color: red;
+  margin-right: 5px;
+  position: absolute;
+  left: -30px;
+}
+
+.z-15 {
+  z-index: 15;
+  position: relative;
+}
+
+.t-c-l {
+  text-align: center !important;
+}
+@media (min-width: 992px) {
+  .t-c-l {
+    text-align: left !important;
+  }
+}
+
+.site-container-1340 {
+  padding-right: 12px;
+  padding-left: 12px;
+  margin: auto;
+  position: relative;
+  max-width: 1340px;
+  width: 100%;
 }/*# sourceMappingURL=shared.css.map */
