@@ -42,12 +42,14 @@ export default async function handler(req, context) {
 
     // Generate site ID and create
     const siteId = generateSiteId();
+    console.log('Creating site:', { userId: auth.user.id, siteId, domain });
     const site = await createSite(auth.user.id, siteId, domain);
+    console.log('Site created:', site);
 
     return new Response(JSON.stringify({
       success: true,
       site,
-      embedCode: `<script src="https://zero-trust-analytics.netlify.app/js/analytics.js" data-site-id="${siteId}"></script>`
+      embedCode: `<script src="https://zerotrustanalytics.netlify.app/js/analytics.js" data-site-id="${siteId}"></script>`
     }), {
       status: 201,
       headers: {
