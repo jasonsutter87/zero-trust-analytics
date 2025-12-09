@@ -148,6 +148,32 @@
     });
   };
 
+  // Get page load performance metrics (anonymized)
+  ZTA.getPerformanceMetrics = function() {
+    if (!window.performance || !window.performance.timing) {
+      return null;
+    }
+
+    var timing = window.performance.timing;
+    var navigationStart = timing.navigationStart;
+
+    // Only collect timing metrics, no fingerprinting data
+    return {
+      // Page load time (total time from navigation start to load complete)
+      pageLoadTime: timing.loadEventEnd > 0 ? timing.loadEventEnd - navigationStart : null,
+      // DOM content loaded time
+      domContentLoaded: timing.domContentLoadedEventEnd > 0 ? timing.domContentLoadedEventEnd - navigationStart : null,
+      // DNS lookup time
+      dnsTime: timing.domainLookupEnd - timing.domainLookupStart,
+      // TCP connection time
+      connectTime: timing.connectEnd - timing.connectStart,
+      // Time to first byte (server response time)
+      ttfb: timing.responseStart - timing.requestStart,
+      // DOM processing time
+      domProcessing: timing.domComplete - timing.domLoading
+    };
+  };
+
   // Get device info
   ZTA.getDeviceInfo = function() {
     var ua = navigator.userAgent;
@@ -324,6 +350,40 @@
 
     ZTA.send(data);
     ZTA.saveSession();
+
+    // Send performance metrics after page fully loads (delayed to ensure accurate timing)
+    if (document.readyState === 'complete') {
+      ZTA.sendPerformanceMetrics();
+    } else {
+      window.addEventListener('load', function() {
+        // Delay slightly to ensure loadEventEnd is populated
+        setTimeout(function() {
+          ZTA.sendPerformanceMetrics();
+        }, 100);
+      });
+    }
+  };
+
+  // Send performance metrics as a separate event
+  ZTA.sendPerformanceMetrics = function() {
+    var metrics = ZTA.getPerformanceMetrics();
+    if (!metrics || metrics.pageLoadTime === null) return;
+
+    var data = {
+      type: 'event',
+      siteId: ZTA.config.siteId,
+      sessionId: ZTA.session.id,
+      category: 'performance',
+      action: 'page_load',
+      label: window.location.pathname,
+      value: metrics.pageLoadTime,
+      properties: metrics,
+      path: window.location.pathname,
+      timestamp: new Date().toISOString()
+    };
+
+    ZTA.send(data);
+    ZTA.log('Performance metrics sent:', metrics);
   };
 
   // Track custom events (detailed)

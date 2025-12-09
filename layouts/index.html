@@ -12,17 +12,72 @@
         </div>
       </div>
       <div class="col-lg-6 text-center">
-        <div class="bg-white rounded-4 p-4 shadow-lg">
-          <div class="text-dark">
-            <h4 class="mb-3">Sample Dashboard</h4>
-            <div class="row text-center">
-              <div class="col-6 border-end">
-                <h2 class="text-primary mb-0">1,247</h2>
-                <small class="text-muted">Unique Visitors</small>
+        <div class="bg-white rounded-4 shadow-lg overflow-hidden" style="border: 1px solid rgba(0,0,0,0.1);">
+          <!-- Mock Dashboard Header -->
+          <div class="bg-light px-3 py-2 border-bottom d-flex align-items-center">
+            <div class="d-flex gap-1 me-3">
+              <span class="rounded-circle bg-danger" style="width: 12px; height: 12px;"></span>
+              <span class="rounded-circle bg-warning" style="width: 12px; height: 12px;"></span>
+              <span class="rounded-circle bg-success" style="width: 12px; height: 12px;"></span>
+            </div>
+            <small class="text-muted">Zero Trust Analytics - Dashboard</small>
+          </div>
+          <!-- Mock Dashboard Content -->
+          <div class="p-3 text-dark">
+            <!-- Stats Row -->
+            <div class="row g-2 mb-3">
+              <div class="col-3">
+                <div class="bg-light rounded p-2 text-center">
+                  <h5 class="text-primary mb-0 fw-bold">1,247</h5>
+                  <small class="text-muted" style="font-size: 0.7rem;">Visitors</small>
+                </div>
               </div>
-              <div class="col-6">
-                <h2 class="text-primary mb-0">3,892</h2>
-                <small class="text-muted">Page Views</small>
+              <div class="col-3">
+                <div class="bg-light rounded p-2 text-center">
+                  <h5 class="text-primary mb-0 fw-bold">3,892</h5>
+                  <small class="text-muted" style="font-size: 0.7rem;">Page Views</small>
+                </div>
+              </div>
+              <div class="col-3">
+                <div class="bg-light rounded p-2 text-center">
+                  <h5 class="text-success mb-0 fw-bold">2m 34s</h5>
+                  <small class="text-muted" style="font-size: 0.7rem;">Avg. Time</small>
+                </div>
+              </div>
+              <div class="col-3">
+                <div class="bg-light rounded p-2 text-center">
+                  <h5 class="text-info mb-0 fw-bold">32%</h5>
+                  <small class="text-muted" style="font-size: 0.7rem;">Bounce</small>
+                </div>
+              </div>
+            </div>
+            <!-- Mock Chart -->
+            <div class="bg-light rounded p-2 mb-3" style="height: 80px;">
+              <svg viewBox="0 0 300 60" class="w-100 h-100">
+                <polyline fill="none" stroke="#0d6efd" stroke-width="2" points="0,50 30,45 60,35 90,40 120,25 150,30 180,20 210,15 240,25 270,10 300,5"/>
+                <polyline fill="url(#gradient)" stroke="none" points="0,60 0,50 30,45 60,35 90,40 120,25 150,30 180,20 210,15 240,25 270,10 300,5 300,60"/>
+                <defs>
+                  <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color:#0d6efd;stop-opacity:0.3"/>
+                    <stop offset="100%" style="stop-color:#0d6efd;stop-opacity:0"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <!-- Mock Top Pages -->
+            <div class="text-start">
+              <small class="text-muted d-block mb-1 fw-bold">Top Pages</small>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <small class="text-truncate" style="font-size: 0.75rem;">/home</small>
+                <span class="badge bg-primary" style="font-size: 0.65rem;">1,234</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <small class="text-truncate" style="font-size: 0.75rem;">/pricing</small>
+                <span class="badge bg-primary" style="font-size: 0.65rem;">892</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center">
+                <small class="text-truncate" style="font-size: 0.75rem;">/features</small>
+                <span class="badge bg-primary" style="font-size: 0.65rem;">654</span>
               </div>
             </div>
           </div>
@@ -74,6 +129,69 @@
   </div>
 </section>
 
+<!-- What We DON'T Collect -->
+<section class="py-5 bg-dark text-white">
+  <div class="container py-5">
+    <h2 class="text-center mb-5">What We DON'T Collect</h2>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="d-flex align-items-start">
+          <div class="text-danger me-3"><i class="fas fa-times-circle fa-2x"></i></div>
+          <div>
+            <h5>No Cookies</h5>
+            <p class="text-muted mb-0">We never set cookies on your visitors' browsers. Zero cookie banners needed.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="d-flex align-items-start">
+          <div class="text-danger me-3"><i class="fas fa-times-circle fa-2x"></i></div>
+          <div>
+            <h5>No IP Addresses</h5>
+            <p class="text-muted mb-0">We never store raw IP addresses. Only one-way hashed identifiers with daily rotation.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="d-flex align-items-start">
+          <div class="text-danger me-3"><i class="fas fa-times-circle fa-2x"></i></div>
+          <div>
+            <h5>No Fingerprinting</h5>
+            <p class="text-muted mb-0">No canvas fingerprinting, font detection, or any device fingerprinting techniques.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="d-flex align-items-start">
+          <div class="text-danger me-3"><i class="fas fa-times-circle fa-2x"></i></div>
+          <div>
+            <h5>No Personal Data</h5>
+            <p class="text-muted mb-0">No names, emails, or any personally identifiable information stored.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="d-flex align-items-start">
+          <div class="text-danger me-3"><i class="fas fa-times-circle fa-2x"></i></div>
+          <div>
+            <h5>No Cross-Site Tracking</h5>
+            <p class="text-muted mb-0">Visitors are never tracked across different websites. Each site is isolated.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="d-flex align-items-start">
+          <div class="text-danger me-3"><i class="fas fa-times-circle fa-2x"></i></div>
+          <div>
+            <h5>No Data Selling</h5>
+            <p class="text-muted mb-0">Your analytics data is yours alone. We never sell or share it with third parties.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- How It Works -->
 <section class="bg-light py-5">
   <div class="container py-5">
@@ -93,6 +211,30 @@
         <div class="step-number bg-primary text-white rounded-circle mx-auto mb-3" style="width: 50px; height: 50px; line-height: 50px; font-weight: bold;">3</div>
         <h5>View Dashboard</h5>
         <p class="text-muted">See your stats in a clean, simple dashboard. No complexity, just insights.</p>
+      </div>
+    </div>
+    <!-- Code Snippet -->
+    <div class="row justify-content-center mt-5">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-dark text-white d-flex align-items-center">
+            <i class="fas fa-code me-2"></i>
+            <span>Quick Installation</span>
+            <button class="btn btn-sm btn-outline-light ms-auto" onclick="navigator.clipboard.writeText(document.getElementById('snippet-code').textContent.trim())">
+              <i class="fas fa-copy me-1"></i>Copy
+            </button>
+          </div>
+          <div class="card-body bg-dark">
+            <pre class="mb-0 text-light" style="font-size: 0.875rem;"><code id="snippet-code">&lt;script defer src="https://zerotrustanalytics.netlify.app/js/analytics.js"
+        data-site-id="YOUR_SITE_ID"&gt;&lt;/script&gt;</code></pre>
+          </div>
+          <div class="card-footer bg-light">
+            <small class="text-muted">
+              <i class="fas fa-bolt text-warning me-1"></i>
+              Using <code>defer</code> ensures the script loads without blocking your page. Under 3KB, zero impact on Core Web Vitals.
+            </small>
+          </div>
+        </div>
       </div>
     </div>
   </div>

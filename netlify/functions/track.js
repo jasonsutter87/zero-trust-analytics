@@ -7,6 +7,26 @@ import {
   getSite
 } from './lib/storage.js';
 
+// Basic bot detection - filters common bots/crawlers
+function isBot(userAgent) {
+  if (!userAgent) return false;
+
+  const botPatterns = [
+    'bot', 'crawl', 'spider', 'slurp', 'mediapartners',
+    'facebookexternalhit', 'linkedinbot', 'twitterbot',
+    'whatsapp', 'telegrambot', 'discordbot', 'applebot',
+    'bingpreview', 'googlebot', 'yandexbot', 'baiduspider',
+    'duckduckbot', 'sogou', 'exabot', 'facebot', 'ia_archiver',
+    'semrushbot', 'ahrefsbot', 'mj12bot', 'dotbot', 'petalbot',
+    'bytespider', 'gptbot', 'claudebot', 'ccbot', 'anthropic',
+    'headlesschrome', 'phantomjs', 'selenium', 'puppeteer',
+    'lighthouse', 'pagespeed', 'pingdom', 'uptimerobot'
+  ];
+
+  const ua = userAgent.toLowerCase();
+  return botPatterns.some(pattern => ua.includes(pattern));
+}
+
 // Validate origin against registered site domain
 function validateOrigin(origin, siteDomain) {
   if (!origin) return false;
@@ -92,6 +112,17 @@ export default async function handler(req, context) {
     // Get client IP and user agent
     const ip = context.ip || req.headers.get('x-forwarded-for') || 'unknown';
     const userAgent = req.headers.get('user-agent') || 'unknown';
+
+    // Filter out bots - silently accept but don't record
+    if (isBot(userAgent)) {
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': allowedOrigin || '*'
+        }
+      });
+    }
 
     // Hash visitor for anonymous tracking
     const visitorHash = hashVisitor(ip, userAgent);
