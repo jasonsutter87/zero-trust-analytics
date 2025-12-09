@@ -326,7 +326,7 @@
     ZTA.saveSession();
   };
 
-  // Track custom events
+  // Track custom events (detailed)
   ZTA.trackEvent = function(category, action, label, value) {
     var data = {
       type: 'event',
@@ -342,6 +342,31 @@
     };
 
     ZTA.send(data);
+  };
+
+  // Simple event tracking API
+  // Usage: ZTA.track('signup')
+  //        ZTA.track('button_click')
+  //        ZTA.track('purchase', { amount: 99, product: 'Pro Plan' })
+  ZTA.track = function(eventName, properties) {
+    properties = properties || {};
+
+    var data = {
+      type: 'event',
+      siteId: ZTA.config.siteId,
+      sessionId: ZTA.session.id,
+      category: 'custom',
+      action: eventName,
+      label: properties.label || null,
+      value: properties.value || properties.amount || null,
+      properties: properties,
+      url: window.location.href,
+      path: window.location.pathname,
+      timestamp: new Date().toISOString()
+    };
+
+    ZTA.send(data);
+    ZTA.log('Tracked event:', eventName, properties);
   };
 
   // Track time on page (called on page unload)
