@@ -1,0 +1,71 @@
+// Zero Trust Analytics - About Page Styles
+
+#inner-page-hero-section {
+  padding: 60px 0 40px;
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  color: white;
+
+  h4 {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    opacity: 0.8;
+    margin-bottom: 10px;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+
+    @media (min-width: 768px) {
+      font-size: 3rem;
+    }
+  }
+}
+
+#policies-main-section {
+  padding: 50px 0 80px;
+  background: #f8f9fa;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #212529;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #0d6efd;
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+
+  p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #495057;
+    margin-bottom: 1rem;
+  }
+
+  ul {
+    margin-bottom: 1.5rem;
+    padding-left: 1.25rem;
+
+    li {
+      margin-bottom: 0.75rem;
+      line-height: 1.6;
+      color: #495057;
+
+      strong {
+        color: #212529;
+      }
+    }
+  }
+
+  .btn-primary {
+    padding: 12px 30px;
+    font-weight: 500;
+  }
+}
