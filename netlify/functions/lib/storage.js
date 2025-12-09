@@ -295,7 +295,8 @@ export async function recordEvent(siteId, visitorHash, data) {
       category: data.category,
       action: data.action,
       count: 0,
-      labels: {}
+      labels: {},
+      totalValue: 0
     };
   }
 
@@ -306,6 +307,11 @@ export async function recordEvent(siteId, visitorHash, data) {
   if (data.label) {
     eventStats.events[eventKey].labels[data.label] =
       (eventStats.events[eventKey].labels[data.label] || 0) + 1;
+  }
+
+  // Track value (for purchases, etc.)
+  if (data.value && typeof data.value === 'number') {
+    eventStats.events[eventKey].totalValue += data.value;
   }
 
   await events.setJSON(statsKey, eventStats);
