@@ -7,13 +7,42 @@ import {
   getSite
 } from './lib/storage.js';
 
+// Validate origin against registered site domain
+function validateOrigin(origin, siteDomain) {
+  if (!origin) return false;
+
+  try {
+    const originUrl = new URL(origin);
+    const originHost = originUrl.hostname.toLowerCase();
+    const siteHost = siteDomain.toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, '');
+
+    // Exact match or www variant
+    return originHost === siteHost ||
+           originHost === `www.${siteHost}` ||
+           `www.${originHost}` === siteHost;
+  } catch {
+    return false;
+  }
+}
+
+// Get allowed origin for CORS header
+function getAllowedOrigin(origin, siteDomain) {
+  if (validateOrigin(origin, siteDomain)) {
+    return origin;
+  }
+  return null;
+}
+
 export default async function handler(req, context) {
-  // Handle CORS preflight
+  const origin = req.headers.get('origin');
+
+  // Handle CORS preflight - allow all origins for preflight
+  // Actual validation happens on POST
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       status: 204,
       headers: {
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': origin || '*',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type'
       }
@@ -44,6 +73,19 @@ export default async function handler(req, context) {
       return new Response(JSON.stringify({ error: 'Invalid site ID' }), {
         status: 404,
         headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // CORS origin validation - only allow requests from the registered domain
+    const allowedOrigin = getAllowedOrigin(origin, site.domain);
+    if (!allowedOrigin && origin) {
+      console.log(`CORS blocked: origin=${origin}, expected domain=${site.domain}`);
+      return new Response(JSON.stringify({ error: 'Origin not allowed' }), {
+        status: 403,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': 'null'
+        }
       });
     }
 
@@ -125,7 +167,7 @@ export default async function handler(req, context) {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': allowedOrigin || '*'
       }
     });
   } catch (err) {
