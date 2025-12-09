@@ -1,6 +1,6 @@
 // Zero Trust Analytics - Dashboard JavaScript
+// Note: API_BASE is defined in auth.js which loads first
 
-const API_BASE = '/api';
 let currentSiteId = null;
 let currentPeriod = '7d';
 
@@ -14,11 +14,15 @@ document.addEventListener('DOMContentLoaded', function() {
 // Load user's sites
 async function loadSites() {
   try {
+    console.log('Loading sites...');
+    console.log('Auth headers:', getAuthHeaders());
     const res = await fetch(`${API_BASE}/sites/list`, {
       headers: getAuthHeaders()
     });
+    console.log('Sites response status:', res.status);
 
     const data = await res.json();
+    console.log('Sites data:', data);
 
     if (!res.ok) {
       if (res.status === 401) {
@@ -32,6 +36,7 @@ async function loadSites() {
     const emptyState = document.getElementById('empty-state');
     const statsContent = document.getElementById('stats-content');
 
+    console.log('Sites array:', data.sites);
     if (data.sites && data.sites.length > 0) {
       emptyState.style.display = 'none';
 
@@ -132,6 +137,7 @@ async function handleAddSite(event) {
   const errorEl = document.getElementById('add-site-error');
 
   errorEl.classList.add('d-none');
+  console.log('Adding site:', domain);
 
   try {
     const res = await fetch(`${API_BASE}/sites/create`, {
@@ -141,10 +147,14 @@ async function handleAddSite(event) {
     });
 
     const data = await res.json();
+    console.log('Create site response:', res.status, data);
 
     if (!res.ok) {
       throw new Error(data.error);
     }
+
+    // Show embed code immediately
+    alert('Site created! Embed code:\n\n' + data.embedCode);
 
     // Close modal and reload sites
     const modal = bootstrap.Modal.getInstance(document.getElementById('addSiteModal'));
@@ -157,6 +167,7 @@ async function handleAddSite(event) {
     loadStats();
 
   } catch (err) {
+    console.error('Add site error:', err);
     errorEl.textContent = err.message;
     errorEl.classList.remove('d-none');
   }
