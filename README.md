@@ -638,4 +638,10 @@ This means:
 
 ## License
 
-MIT License - feel free to use, modify, and distribute.
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0).
+
+You are free to use, study, modify, and distribute this software under the terms of the AGPL-3.0. If you modify this software and make it available to users over a network (including hosting it as a SaaS, API, or analytics service), you must make your complete, corresponding source code available under the same license.
+
+For full license details, see the LICENSE file or visit:
+https://www.gnu.org/licenses/agpl-3.0.html
+
