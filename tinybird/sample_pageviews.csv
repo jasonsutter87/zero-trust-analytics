@@ -1,0 +1,2 @@
+timestamp,site_id,identity_hash,session_hash,event_type,payload,context_device,context_browser,context_os,context_country,context_region,meta_is_bounce,meta_duration
+2025-12-11 12:00:00,site_test,hash123,session123,pageview,"{}",desktop,chrome,windows,US,CA,0,0

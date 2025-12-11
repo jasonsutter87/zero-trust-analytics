@@ -102,6 +102,28 @@ async function queryMultipleNodes(pipeName, nodes, params = {}) {
 }
 
 /**
+ * Run a raw SQL query against Tinybird
+ */
+async function querySQL(sql) {
+  const response = await fetch(
+    `https://${TINYBIRD_HOST}/v0/sql?q=${encodeURIComponent(sql)}`,
+    {
+      headers: {
+        'Authorization': `Bearer ${TINYBIRD_TOKEN}`
+      }
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Tinybird SQL failed: ${error}`);
+  }
+
+  const data = await response.json();
+  return data.data || [];
+}
+
+/**
  * Get stats for a site
  *
  * @param {string} siteId
@@ -110,36 +132,96 @@ async function queryMultipleNodes(pipeName, nodes, params = {}) {
  * @returns {Promise<object>}
  */
 async function getStats(siteId, startDate, endDate) {
-  const params = {
-    site_id: siteId,
-    start_date: startDate,
-    end_date: endDate
-  };
-
-  // Query all stat nodes in parallel
-  const [
-    dailyStats,
-    topPages,
-    topReferrers,
-    devices,
-    browsers,
-    countries
-  ] = await Promise.all([
-    queryPipe('stats__stats_aggregation', params),
-    queryPipe('stats__top_pages', params),
-    queryPipe('stats__top_referrers', params),
-    queryPipe('stats__device_breakdown', params),
-    queryPipe('stats__browser_breakdown', params),
-    queryPipe('stats__country_breakdown', params)
+  // Query raw datasource directly with SQL
+  const [dailyStats, topPages, topReferrers, devices, browsers, countries] = await Promise.all([
+    // Daily stats
+    querySQL(`
+      SELECT
+        toDate(timestamp) as date,
+        count() as pageviews,
+        uniqExact(identity_hash) as unique_visitors,
+        countIf(meta_is_bounce = 1) as bounces,
+        round(avg(meta_duration), 0) as avg_duration
+      FROM pageviews
+      WHERE event_type = 'pageview'
+        AND site_id = '${siteId}'
+        AND timestamp >= '${startDate}'
+        AND timestamp <= '${endDate}'
+      GROUP BY date
+      ORDER BY date DESC
+    `),
+    // Top pages
+    querySQL(`
+      SELECT
+        JSONExtractString(payload, 'page_path') as page,
+        count() as views,
+        uniqExact(identity_hash) as visitors
+      FROM pageviews
+      WHERE event_type = 'pageview'
+        AND site_id = '${siteId}'
+        AND timestamp >= '${startDate}'
+        AND timestamp <= '${endDate}'
+      GROUP BY page
+      ORDER BY views DESC
+      LIMIT 10
+    `),
+    // Top referrers
+    querySQL(`
+      SELECT
+        JSONExtractString(payload, 'referrer_domain') as referrer,
+        count() as views
+      FROM pageviews
+      WHERE event_type = 'pageview'
+        AND site_id = '${siteId}'
+        AND timestamp >= '${startDate}'
+        AND timestamp <= '${endDate}'
+        AND referrer != ''
+      GROUP BY referrer
+      ORDER BY views DESC
+      LIMIT 10
+    `),
+    // Devices
+    querySQL(`
+      SELECT context_device as device, count() as count
+      FROM pageviews
+      WHERE event_type = 'pageview'
+        AND site_id = '${siteId}'
+        AND timestamp >= '${startDate}'
+        AND timestamp <= '${endDate}'
+      GROUP BY device
+      ORDER BY count DESC
+    `),
+    // Browsers
+    querySQL(`
+      SELECT context_browser as browser, count() as count
+      FROM pageviews
+      WHERE event_type = 'pageview'
+        AND site_id = '${siteId}'
+        AND timestamp >= '${startDate}'
+        AND timestamp <= '${endDate}'
+      GROUP BY browser
+      ORDER BY count DESC
+    `),
+    // Countries
+    querySQL(`
+      SELECT context_country as country, count() as count
+      FROM pageviews
+      WHERE event_type = 'pageview'
+        AND site_id = '${siteId}'
+        AND timestamp >= '${startDate}'
+        AND timestamp <= '${endDate}'
+      GROUP BY country
+      ORDER BY count DESC
+    `)
   ]);
 
   // Calculate totals from daily stats
   const totals = dailyStats.reduce(
     (acc, day) => ({
-      pageviews: acc.pageviews + day.pageviews,
-      unique_visitors: acc.unique_visitors + day.unique_visitors,
-      bounces: acc.bounces + day.bounces,
-      total_duration: acc.total_duration + (day.avg_duration * day.pageviews)
+      pageviews: acc.pageviews + (day.pageviews || 0),
+      unique_visitors: acc.unique_visitors + (day.unique_visitors || 0),
+      bounces: acc.bounces + (day.bounces || 0),
+      total_duration: acc.total_duration + ((day.avg_duration || 0) * (day.pageviews || 0))
     }),
     { pageviews: 0, unique_visitors: 0, bounces: 0, total_duration: 0 }
   );
@@ -171,40 +253,45 @@ async function getStats(siteId, startDate, endDate) {
  * @returns {Promise<object>}
  */
 async function getRealtime(siteId) {
-  const params = { site_id: siteId };
-
-  // Try to get traffic sources if the pipe exists, otherwise skip
-  let trafficSources = [];
   try {
-    const [active, recent, perMinute, sources] = await Promise.all([
-      queryPipe('realtime__active_visitors', params),
-      queryPipe('realtime__recent_pageviews', params),
-      queryPipe('realtime__visitors_per_minute', params),
-      queryPipe('realtime__traffic_sources', params).catch(() => [])
+    const [activeResult, recentResult] = await Promise.all([
+      // Active visitors in last 5 minutes
+      querySQL(`
+        SELECT
+          uniqExact(identity_hash) as active_visitors,
+          count() as pageviews_last_5min
+        FROM pageviews
+        WHERE site_id = '${siteId}'
+          AND timestamp >= now() - INTERVAL 5 MINUTE
+          AND event_type = 'pageview'
+      `),
+      // Recent pageviews
+      querySQL(`
+        SELECT
+          timestamp,
+          JSONExtractString(payload, 'page_path') as page
+        FROM pageviews
+        WHERE site_id = '${siteId}'
+          AND event_type = 'pageview'
+        ORDER BY timestamp DESC
+        LIMIT 10
+      `)
     ]);
 
-    trafficSources = sources;
-
     return {
-      active_visitors: active[0]?.active_visitors || 0,
-      pageviews_last_5min: active[0]?.pageviews_last_5min || 0,
-      recent_pageviews: recent,
-      visitors_per_minute: perMinute,
-      traffic_sources: trafficSources
+      active_visitors: activeResult[0]?.active_visitors || 0,
+      pageviews_last_5min: activeResult[0]?.pageviews_last_5min || 0,
+      recent_pageviews: recentResult,
+      visitors_per_minute: [],
+      traffic_sources: []
     };
   } catch (err) {
-    // Fallback without traffic sources
-    const [active, recent, perMinute] = await Promise.all([
-      queryPipe('realtime__active_visitors', params),
-      queryPipe('realtime__recent_pageviews', params),
-      queryPipe('realtime__visitors_per_minute', params)
-    ]);
-
+    console.error('Realtime query error:', err);
     return {
-      active_visitors: active[0]?.active_visitors || 0,
-      pageviews_last_5min: active[0]?.pageviews_last_5min || 0,
-      recent_pageviews: recent,
-      visitors_per_minute: perMinute,
+      active_visitors: 0,
+      pageviews_last_5min: 0,
+      recent_pageviews: [],
+      visitors_per_minute: [],
       traffic_sources: []
     };
   }
@@ -221,25 +308,64 @@ async function getRealtime(siteId) {
  * @returns {Promise<array>}
  */
 async function exportData(siteId, startDate, endDate, type = 'pageviews', limit = 10000) {
-  const params = {
-    site_id: siteId,
-    start_date: startDate,
-    end_date: endDate,
-    limit
+  const queries = {
+    pageviews: `
+      SELECT
+        timestamp,
+        JSONExtractString(payload, 'page_path') as page_path,
+        JSONExtractString(payload, 'referrer_domain') as referrer,
+        context_device as device,
+        context_browser as browser,
+        context_country as country,
+        meta_duration as time_on_page,
+        meta_is_bounce as is_bounce
+      FROM pageviews
+      WHERE event_type = 'pageview'
+        AND site_id = '${siteId}'
+        AND timestamp >= '${startDate}'
+        AND timestamp <= '${endDate}'
+      ORDER BY timestamp DESC
+      LIMIT ${limit}
+    `,
+    events: `
+      SELECT
+        timestamp,
+        event_type,
+        payload,
+        context_device as device,
+        context_browser as browser,
+        context_country as country
+      FROM pageviews
+      WHERE event_type != 'pageview'
+        AND site_id = '${siteId}'
+        AND timestamp >= '${startDate}'
+        AND timestamp <= '${endDate}'
+      ORDER BY timestamp DESC
+      LIMIT ${limit}
+    `,
+    summary: `
+      SELECT
+        toDate(timestamp) as date,
+        count() as pageviews,
+        uniqExact(identity_hash) as unique_visitors,
+        countIf(meta_is_bounce = 1) as bounces
+      FROM pageviews
+      WHERE event_type = 'pageview'
+        AND site_id = '${siteId}'
+        AND timestamp >= '${startDate}'
+        AND timestamp <= '${endDate}'
+      GROUP BY date
+      ORDER BY date DESC
+    `
   };
 
-  const pipeMap = {
-    pageviews: 'export__export_pageviews',
-    events: 'export__export_events',
-    summary: 'export__export_daily_summary'
-  };
-
-  return queryPipe(pipeMap[type] || pipeMap.pageviews, params);
+  return querySQL(queries[type] || queries.pageviews);
 }
 
 export {
   ingestEvents,
   queryPipe,
+  querySQL,
   queryMultipleNodes,
   getStats,
   getRealtime,
