@@ -6,6 +6,10 @@ let currentPeriod = '7d';
 let realtimeInterval = null;
 let visitorsChart = null;
 let sourcesChart = null;
+let devicesChart = null;
+let browsersChart = null;
+let compareEnabled = false;
+let previousPeriodData = null;
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function() {
@@ -107,12 +111,89 @@ async function loadStats() {
       throw new Error(data.error || 'Failed to load stats');
     }
 
+    // Fetch comparison data if enabled
+    if (compareEnabled) {
+      await loadComparisonData();
+    } else {
+      previousPeriodData = null;
+      clearComparisonDisplay();
+    }
+
     updateDashboard(data);
     startRealtimeUpdates();
 
   } catch (err) {
     console.error('Failed to load stats:', err);
   }
+}
+
+// Toggle comparison mode
+function toggleComparison() {
+  compareEnabled = document.getElementById('compare-toggle').checked;
+  if (currentSiteId) {
+    loadStats();
+  }
+}
+
+// Load comparison data for previous period
+async function loadComparisonData() {
+  const startDate = document.getElementById('start-date').value;
+  const endDate = document.getElementById('end-date').value;
+
+  if (!startDate || !endDate) return;
+
+  // Calculate previous period dates
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const periodDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+
+  const prevEnd = new Date(start);
+  prevEnd.setDate(prevEnd.getDate() - 1);
+  const prevStart = new Date(prevEnd);
+  prevStart.setDate(prevStart.getDate() - periodDays);
+
+  try {
+    const res = await fetch(`${API_BASE}/stats?siteId=${currentSiteId}&startDate=${prevStart.toISOString().split('T')[0]}&endDate=${prevEnd.toISOString().split('T')[0]}`, {
+      headers: getAuthHeaders()
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      previousPeriodData = data;
+    }
+  } catch (err) {
+    console.error('Failed to load comparison data:', err);
+    previousPeriodData = null;
+  }
+}
+
+// Clear comparison display
+function clearComparisonDisplay() {
+  const compareEls = document.querySelectorAll('.stat-comparison');
+  compareEls.forEach(el => el.innerHTML = '');
+}
+
+// Format comparison change
+function formatChange(current, previous, isPercentage = false, invertColors = false) {
+  if (previous === 0 || previous === undefined || previous === null) {
+    return '<span class="neutral">-</span>';
+  }
+
+  const change = ((current - previous) / previous) * 100;
+  const absChange = Math.abs(change).toFixed(1);
+
+  let colorClass;
+  if (change > 0) {
+    colorClass = invertColors ? 'down' : 'up';
+  } else if (change < 0) {
+    colorClass = invertColors ? 'up' : 'down';
+  } else {
+    colorClass = 'neutral';
+  }
+
+  const arrow = change > 0 ? '↑' : change < 0 ? '↓' : '→';
+  return `<span class="${colorClass}">${arrow} ${absChange}%</span>`;
 }
 
 // Load stats with custom date range
@@ -150,6 +231,21 @@ function updateDashboard(data) {
   document.getElementById('page-views').textContent = formatNumber(data.pageviews || 0);
   document.getElementById('sessions').textContent = formatNumber(data.uniqueSessions || 0);
   document.getElementById('bounce-rate').textContent = (data.bounceRate || 0) + '%';
+
+  // Show comparison if enabled
+  if (compareEnabled && previousPeriodData) {
+    document.getElementById('unique-visitors-compare').innerHTML =
+      formatChange(data.uniqueVisitors || 0, previousPeriodData.uniqueVisitors || 0);
+    document.getElementById('page-views-compare').innerHTML =
+      formatChange(data.pageviews || 0, previousPeriodData.pageviews || 0);
+    document.getElementById('sessions-compare').innerHTML =
+      formatChange(data.uniqueSessions || 0, previousPeriodData.uniqueSessions || 0);
+    // For bounce rate, lower is better (invert colors)
+    document.getElementById('bounce-rate-compare').innerHTML =
+      formatChange(data.bounceRate || 0, previousPeriodData.bounceRate || 0, true, true);
+  } else {
+    clearComparisonDisplay();
+  }
 
   // Secondary stats
   document.getElementById('avg-session-duration').textContent = formatDuration(data.avgSessionDuration || 0);
@@ -266,6 +362,26 @@ async function updateRealtime() {
 
     if (res.ok) {
       document.getElementById('active-visitors').textContent = data.activeVisitors || 0;
+
+      // Update real-time traffic sources
+      const sourcesEl = document.getElementById('realtime-sources');
+      if (sourcesEl && data.trafficSources && data.trafficSources.length > 0) {
+        const sourceColors = {
+          'direct': 'bg-primary',
+          'organic': 'bg-success',
+          'referral': 'bg-info',
+          'social': 'bg-warning',
+          'default': 'bg-secondary'
+        };
+
+        sourcesEl.innerHTML = data.trafficSources.slice(0, 4).map(s => {
+          const colorClass = sourceColors[s.source] || sourceColors['default'];
+          return `<span class="badge ${colorClass}">${s.source}: ${s.count}</span>`;
+        }).join('');
+        sourcesEl.style.display = 'flex';
+      } else if (sourcesEl) {
+        sourcesEl.style.display = 'none';
+      }
     }
   } catch (err) {
     console.error('Realtime update failed:', err);
@@ -424,6 +540,8 @@ function updateCharts(data) {
 
   updateVisitorsChart(data.daily || []);
   updateSourcesChart(data.trafficSources || {});
+  updateDevicesChart(data.devices || {});
+  updateBrowsersChart(data.browsers || {});
 }
 
 function updateVisitorsChart(dailyData) {
@@ -520,6 +638,99 @@ function updateSourcesChart(sources) {
           labels: {
             boxWidth: 12,
             padding: 10
+          }
+        }
+      }
+    }
+  });
+}
+
+function updateDevicesChart(devices) {
+  const ctx = document.getElementById('devices-chart');
+  if (!ctx) return;
+
+  // Destroy existing chart
+  if (devicesChart) {
+    devicesChart.destroy();
+  }
+
+  const sortedDevices = Object.entries(devices).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const labels = sortedDevices.map(([name]) => name.charAt(0).toUpperCase() + name.slice(1));
+  const values = sortedDevices.map(([, count]) => count);
+
+  const colors = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6c757d'];
+
+  devicesChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Visits',
+        data: values,
+        backgroundColor: colors.slice(0, labels.length),
+        borderWidth: 0,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: {
+            precision: 0
+          }
+        }
+      }
+    }
+  });
+}
+
+function updateBrowsersChart(browsers) {
+  const ctx = document.getElementById('browsers-chart');
+  if (!ctx) return;
+
+  // Destroy existing chart
+  if (browsersChart) {
+    browsersChart.destroy();
+  }
+
+  const sortedBrowsers = Object.entries(browsers).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  const labels = sortedBrowsers.map(([name]) => name);
+  const values = sortedBrowsers.map(([, count]) => count);
+
+  const colors = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6c757d', '#0dcaf0'];
+
+  browsersChart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors.slice(0, labels.length),
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            boxWidth: 12,
+            padding: 8,
+            font: {
+              size: 11
+            }
           }
         }
       }

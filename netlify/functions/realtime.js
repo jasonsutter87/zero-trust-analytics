@@ -61,12 +61,26 @@ export default async function handler(req, context) {
       pageBreakdown[path] = (pageBreakdown[path] || 0) + 1;
     }
 
+    // Build traffic sources breakdown from recent pageviews if not provided by pipe
+    let trafficSources = realtime.traffic_sources || [];
+    if (trafficSources.length === 0 && realtime.recent_pageviews?.length > 0) {
+      const sourceCount = {};
+      for (const pv of realtime.recent_pageviews) {
+        const source = pv.traffic_source || pv.referrer_domain || 'direct';
+        sourceCount[source] = (sourceCount[source] || 0) + 1;
+      }
+      trafficSources = Object.entries(sourceCount)
+        .map(([source, count]) => ({ source, count }))
+        .sort((a, b) => b.count - a.count);
+    }
+
     return new Response(JSON.stringify({
       activeVisitors: realtime.active_visitors,
       pageviewsLast5Min: realtime.pageviews_last_5min,
       pageBreakdown,
       recentPageviews: realtime.recent_pageviews,
       visitorsPerMinute: realtime.visitors_per_minute,
+      trafficSources,
       timestamp: new Date().toISOString()
     }), {
       status: 200,

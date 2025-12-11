@@ -25,5 +25,9 @@
   "homepage": "https://github.com/jasonsutter87/zero-trust-analytics#readme",
   "devDependencies": {
     "javascript-obfuscator": "^5.0.1"
+  },
+  "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
+    "resend": "^6.6.0"
   }
 }

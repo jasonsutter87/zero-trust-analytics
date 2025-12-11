@@ -45,6 +45,10 @@
         <span class="text-muted">to</span>
         <input type="date" class="form-control form-control-sm" id="end-date" onchange="loadStatsCustomRange()">
       </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="compare-toggle" onchange="toggleComparison()">
+        <label class="form-check-label small" for="compare-toggle">Compare to previous period</label>
+      </div>
     </div>
 
     <!-- Empty State (shown when no sites) -->
@@ -63,10 +67,13 @@
     <div id="stats-content" style="display: none;">
 
       <!-- Real-time Badge -->
-      <div class="mb-4">
+      <div class="mb-4 d-flex flex-wrap gap-3 align-items-center">
         <div class="d-inline-flex align-items-center bg-success text-white px-3 py-2 rounded">
           <span class="pulse-dot me-2"></span>
           <span id="active-visitors">0</span> active visitor(s) right now
+        </div>
+        <div class="d-inline-flex align-items-center gap-2" id="realtime-sources" style="display: none !important;">
+          <!-- Populated by JS -->
         </div>
       </div>
 
@@ -75,18 +82,22 @@
         <div class="stat-card">
           <div class="stat-value" id="unique-visitors">-</div>
           <div class="stat-label">Unique Visitors</div>
+          <div class="stat-comparison" id="unique-visitors-compare"></div>
         </div>
         <div class="stat-card">
           <div class="stat-value" id="page-views">-</div>
           <div class="stat-label">Page Views</div>
+          <div class="stat-comparison" id="page-views-compare"></div>
         </div>
         <div class="stat-card">
           <div class="stat-value" id="sessions">-</div>
           <div class="stat-label">Sessions</div>
+          <div class="stat-comparison" id="sessions-compare"></div>
         </div>
         <div class="stat-card">
           <div class="stat-value" id="bounce-rate">-</div>
           <div class="stat-label">Bounce Rate</div>
+          <div class="stat-comparison" id="bounce-rate-compare"></div>
         </div>
       </div>
 
@@ -109,6 +120,30 @@
             </div>
             <div class="card-body d-flex align-items-center justify-content-center">
               <canvas id="sources-chart" height="200"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Charts Row -->
+      <div class="row mb-4">
+        <div class="col-lg-6 mb-4 mb-lg-0">
+          <div class="card h-100">
+            <div class="card-header">
+              <h5 class="mb-0">Devices</h5>
+            </div>
+            <div class="card-body">
+              <canvas id="devices-chart" height="200"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card h-100">
+            <div class="card-header">
+              <h5 class="mb-0">Browsers</h5>
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+              <canvas id="browsers-chart" height="200"></canvas>
             </div>
           </div>
         </div>
@@ -381,6 +416,7 @@
               <li><code>data-debug="true"</code> - Enable console logging</li>
               <li><code>data-track-scroll="false"</code> - Disable scroll tracking</li>
               <li><code>data-track-outbound="false"</code> - Disable outbound link tracking</li>
+              <li><code>data-track-forms="false"</code> - Disable form submission tracking</li>
             </ul>
           </div>
           <div class="mt-3">
@@ -502,6 +538,19 @@ ZTA.track('download', { file: 'report.pdf' });</code></pre>
   font-size: 0.75rem;
   color: #6c757d;
   text-transform: uppercase;
+}
+.stat-card .stat-comparison {
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+.stat-comparison .up {
+  color: #198754;
+}
+.stat-comparison .down {
+  color: #dc3545;
+}
+.stat-comparison .neutral {
+  color: #6c757d;
 }
 .data-table {
   background: white;
