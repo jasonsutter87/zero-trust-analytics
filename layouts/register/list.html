@@ -1,27 +1,61 @@
 {{ define "main" }}
 <div class="auth-container">
   <div class="container">
-    <div class="auth-card bg-white mx-auto">
+    <div class="auth-card bg-white mx-auto" role="region" aria-labelledby="register-heading">
       <div class="auth-header">
-        <h1>Get Started</h1>
+        <h1 id="register-heading">Get Started</h1>
         <p>Create your account - $10/month</p>
       </div>
 
-      <div class="auth-error alert alert-danger" id="register-error"></div>
+      <div
+        class="auth-error alert alert-danger"
+        id="register-error"
+        role="alert"
+        aria-live="polite"
+        aria-atomic="true"
+      ></div>
 
-      <form class="auth-form" id="register-form" onsubmit="handleRegister(event)">
+      <form class="auth-form" id="register-form" onsubmit="handleRegister(event)" novalidate>
         <div class="mb-3">
           <label for="email" class="form-label">Email address</label>
-          <input type="email" class="form-control" id="email" name="email" required>
+          <input
+            type="email"
+            class="form-control"
+            id="email"
+            name="email"
+            autocomplete="email"
+            required
+            aria-required="true"
+          >
         </div>
         <div class="mb-3">
           <label for="password" class="form-label">Password</label>
-          <input type="password" class="form-control" id="password" name="password" minlength="8" required>
-          <div class="form-text">Must be at least 8 characters</div>
+          <input
+            type="password"
+            class="form-control"
+            id="password"
+            name="password"
+            minlength="8"
+            autocomplete="new-password"
+            required
+            aria-required="true"
+            aria-describedby="password-hint"
+          >
+          <div id="password-hint" class="form-text">Must be at least 8 characters</div>
         </div>
         <div class="mb-3">
           <label for="confirm-password" class="form-label">Confirm Password</label>
-          <input type="password" class="form-control" id="confirm-password" name="confirmPassword" required>
+          <input
+            type="password"
+            class="form-control"
+            id="confirm-password"
+            name="confirmPassword"
+            autocomplete="new-password"
+            required
+            aria-required="true"
+            aria-describedby="confirm-hint"
+          >
+          <div id="confirm-hint" class="form-text visually-hidden">Re-enter your password to confirm</div>
         </div>
         <button type="submit" class="btn btn-primary w-100" id="register-btn">
           Create Account

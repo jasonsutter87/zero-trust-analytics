@@ -5,46 +5,51 @@
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
       <div>
         <h1 class="h3 mb-1">Dashboard</h1>
-        <p class="text-muted mb-0" id="current-site-domain">Select a site to view analytics</p>
+        <p class="text-muted mb-0" id="current-site-domain" aria-live="polite">Select a site to view analytics</p>
       </div>
-      <div class="d-flex gap-2 flex-wrap">
-        <button class="btn btn-outline-secondary btn-sm" onclick="exportData('json')">
-          <i class="fas fa-download me-1"></i>Export JSON
+      <div class="d-flex gap-2 flex-wrap" role="toolbar" aria-label="Dashboard actions">
+        <button class="btn btn-outline-secondary btn-sm" onclick="exportData('json')" aria-label="Export data as JSON">
+          <i class="fas fa-download me-1" aria-hidden="true"></i>Export JSON
         </button>
-        <button class="btn btn-outline-secondary btn-sm" onclick="exportData('csv')">
-          <i class="fas fa-file-csv me-1"></i>Export CSV
+        <button class="btn btn-outline-secondary btn-sm" onclick="exportData('csv')" aria-label="Export data as CSV">
+          <i class="fas fa-file-csv me-1" aria-hidden="true"></i>Export CSV
         </button>
-        <button class="btn btn-outline-secondary" onclick="openBillingPortal()">
-          <i class="fas fa-credit-card me-1"></i>Billing
+        <button class="btn btn-outline-secondary" onclick="openBillingPortal()" aria-label="Open billing portal">
+          <i class="fas fa-credit-card me-1" aria-hidden="true"></i>Billing
         </button>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSiteModal">
-          <i class="fas fa-plus me-1"></i>Add Site
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSiteModal" aria-label="Add a new site">
+          <i class="fas fa-plus me-1" aria-hidden="true"></i>Add Site
         </button>
       </div>
     </div>
 
     <!-- Site Selector, Period & Date Range -->
-    <div class="d-flex flex-wrap gap-3 mb-4 align-items-center">
+    <div class="d-flex flex-wrap gap-3 mb-4 align-items-center" role="region" aria-label="Analytics filters">
       <div class="site-selector d-flex gap-2">
-        <select class="form-select" id="site-selector" onchange="loadStats()">
+        <label for="site-selector" class="visually-hidden">Select a site</label>
+        <select class="form-select" id="site-selector" onchange="loadStats()" aria-describedby="site-selector-help">
           <option value="">Select a site...</option>
         </select>
-        <button class="btn btn-outline-secondary" id="site-settings-btn" onclick="openSiteSettings()" title="Site Settings">
-          <i class="fas fa-cog"></i>
+        <span id="site-selector-help" class="visually-hidden">Choose a website to view its analytics</span>
+        <button class="btn btn-outline-secondary" id="site-settings-btn" onclick="openSiteSettings()" aria-label="Open site settings">
+          <i class="fas fa-cog" aria-hidden="true"></i>
         </button>
       </div>
-      <div class="period-selector btn-group" role="group">
-        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setPeriod('24h')">24h</button>
-        <button type="button" class="btn btn-outline-secondary btn-sm active" onclick="setPeriod('7d')">7d</button>
-        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setPeriod('30d')">30d</button>
-        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setPeriod('90d')">90d</button>
-        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setPeriod('365d')">1y</button>
+      <div class="period-selector btn-group" role="group" aria-label="Select time period">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setPeriod('24h')" aria-pressed="false">24h</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm active" onclick="setPeriod('7d')" aria-pressed="true">7d</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setPeriod('30d')" aria-pressed="false">30d</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setPeriod('90d')" aria-pressed="false">90d</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setPeriod('365d')" aria-pressed="false">1y</button>
       </div>
-      <div class="d-flex gap-2 align-items-center">
+      <fieldset class="d-flex gap-2 align-items-center">
+        <legend class="visually-hidden">Custom date range</legend>
+        <label for="start-date" class="visually-hidden">Start date</label>
         <input type="date" class="form-control form-control-sm" id="start-date" onchange="loadStatsCustomRange()">
-        <span class="text-muted">to</span>
+        <span class="text-muted" aria-hidden="true">to</span>
+        <label for="end-date" class="visually-hidden">End date</label>
         <input type="date" class="form-control form-control-sm" id="end-date" onchange="loadStatsCustomRange()">
-      </div>
+      </fieldset>
       <div class="form-check">
         <input class="form-check-input" type="checkbox" id="compare-toggle" onchange="toggleComparison()">
         <label class="form-check-label small" for="compare-toggle">Compare to previous period</label>
@@ -436,21 +441,30 @@ ZTA.track('download', { file: 'report.pdf' });</code></pre>
 </div>
 
 <!-- Add Site Modal -->
-<div class="modal fade" id="addSiteModal" tabindex="-1">
+<div class="modal fade" id="addSiteModal" tabindex="-1" aria-labelledby="addSiteModalTitle" aria-describedby="addSiteModalDesc">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Add New Site</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <h2 class="modal-title h5" id="addSiteModalTitle">Add New Site</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close dialog"></button>
       </div>
       <div class="modal-body">
-        <form id="add-site-form" onsubmit="handleAddSite(event)">
+        <p id="addSiteModalDesc" class="visually-hidden">Add a new website to track with Zero Trust Analytics</p>
+        <form id="add-site-form" onsubmit="handleAddSite(event)" novalidate>
           <div class="mb-3">
             <label for="site-domain" class="form-label">Website Domain</label>
-            <input type="text" class="form-control" id="site-domain" placeholder="example.com" required>
-            <div class="form-text">Enter your domain without https://</div>
+            <input
+              type="text"
+              class="form-control"
+              id="site-domain"
+              placeholder="example.com"
+              required
+              aria-required="true"
+              aria-describedby="site-domain-hint"
+            >
+            <div id="site-domain-hint" class="form-text">Enter your domain without https://</div>
           </div>
-          <div class="alert alert-danger d-none" id="add-site-error"></div>
+          <div class="alert alert-danger d-none" id="add-site-error" role="alert" aria-live="polite"></div>
         </form>
       </div>
       <div class="modal-footer">
@@ -462,34 +476,51 @@ ZTA.track('download', { file: 'report.pdf' });</code></pre>
 </div>
 
 <!-- Site Settings Modal -->
-<div class="modal fade" id="siteSettingsModal" tabindex="-1">
+<div class="modal fade" id="siteSettingsModal" tabindex="-1" aria-labelledby="siteSettingsModalTitle">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Site Settings</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <h2 class="modal-title h5" id="siteSettingsModalTitle">Site Settings</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close dialog"></button>
       </div>
       <div class="modal-body">
-        <form id="site-settings-form" onsubmit="handleUpdateSite(event)">
+        <form id="site-settings-form" onsubmit="handleUpdateSite(event)" novalidate>
           <div class="mb-3">
-            <label class="form-label">Site ID</label>
-            <input type="text" class="form-control" id="settings-site-id" readonly>
+            <label for="settings-site-id" class="form-label">Site ID</label>
+            <input type="text" class="form-control" id="settings-site-id" readonly aria-readonly="true">
           </div>
           <div class="mb-3">
             <label for="settings-nickname" class="form-label">Nickname (optional)</label>
-            <input type="text" class="form-control" id="settings-nickname" placeholder="My Website">
-            <div class="form-text">A friendly name for this site</div>
+            <input
+              type="text"
+              class="form-control"
+              id="settings-nickname"
+              placeholder="My Website"
+              aria-describedby="nickname-hint"
+            >
+            <div id="nickname-hint" class="form-text">A friendly name for this site</div>
           </div>
           <div class="mb-3">
             <label for="settings-domain" class="form-label">Domain</label>
-            <input type="text" class="form-control" id="settings-domain" placeholder="example.com" required>
+            <input
+              type="text"
+              class="form-control"
+              id="settings-domain"
+              placeholder="example.com"
+              required
+              aria-required="true"
+            >
           </div>
-          <div class="alert alert-danger d-none" id="site-settings-error"></div>
+          <div class="alert alert-danger d-none" id="site-settings-error" role="alert" aria-live="polite"></div>
         </form>
         <hr>
-        <div class="text-muted small mb-2">Danger Zone</div>
-        <button class="btn btn-outline-danger w-100" onclick="confirmDeleteSite()">
-          <i class="fas fa-trash me-2"></i>Delete This Site
+        <div class="text-muted small mb-2" id="danger-zone-label">Danger Zone</div>
+        <button
+          class="btn btn-outline-danger w-100"
+          onclick="confirmDeleteSite()"
+          aria-describedby="danger-zone-label"
+        >
+          <i class="fas fa-trash me-2" aria-hidden="true"></i>Delete This Site
         </button>
       </div>
       <div class="modal-footer">

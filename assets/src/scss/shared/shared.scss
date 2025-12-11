@@ -1,7 +1,14 @@
+// Core (must come first)
 @import 'variables';
+@import 'mixins';
+
+// Components
 @import 'typography';
 @import 'buttons';
 @import 'links';
 @import 'header';
 @import 'footer';
 @import 'common';
+
+// Accessibility (must come last to override)
+@import 'accessibility';
