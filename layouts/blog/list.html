@@ -5,7 +5,14 @@
     <div class="row justify-content-center text-center">
       <div class="col-lg-8">
         <h1 class="display-4 fw-bold mb-3">Blog</h1>
-        <p class="lead mb-0">Insights on privacy-first analytics, GDPR compliance, and why your data shouldn't be someone else's product.</p>
+        <p class="lead mb-4">Insights on privacy-first analytics, GDPR compliance, and why your data shouldn't be someone else's product.</p>
+        <!-- Search Box -->
+        <div class="mx-auto" style="max-width: 500px;">
+          <div class="input-group input-group-lg">
+            <span class="input-group-text bg-white border-0"><i class="fas fa-search text-muted"></i></span>
+            <input type="text" id="blog-search" class="form-control border-0" placeholder="Search articles..." onkeyup="filterBlogPosts()">
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -14,18 +21,26 @@
 <!-- Blog Grid -->
 <section class="py-5">
   <div class="container">
-    <!-- Featured Post (Latest) -->
     {{ $pages := where .Site.RegularPages "Section" "blog" }}
+    {{ $totalPosts := len $pages }}
+
+    <!-- Search Results Info (hidden by default) -->
+    <div id="search-results-info" class="mb-4 text-center" style="display: none;">
+      <span class="badge bg-secondary fs-6" id="search-count"></span>
+      <button class="btn btn-sm btn-outline-secondary ms-2" onclick="clearSearch()">Clear</button>
+    </div>
+
+    <!-- Featured Post (Latest) -->
     {{ $featured := first 1 $pages }}
     {{ range $featured }}
-    <div class="row mb-5">
+    <div class="row mb-5 blog-post" data-title="{{ .Title | lower }}" data-description="{{ .Params.description | lower }}" data-category="{{ .Params.category | lower }}" data-tags="{{ delimit .Params.tags " " | lower }}">
       <div class="col-12">
         <a href="{{ .Permalink }}" class="text-decoration-none">
           <div class="card border-0 shadow-lg overflow-hidden">
             <div class="row g-0">
               <div class="col-lg-6">
                 {{ with .Params.image }}
-                <img src="{{ . }}" class="w-100 h-100" style="object-fit: cover; min-height: 300px;" alt="{{ $.Title }}">
+                <img src="{{ . }}" class="w-100 h-100" style="object-fit: cover; min-height: 300px;" alt="{{ $.Title }}" loading="lazy">
                 {{ else }}
                 <div class="bg-primary d-flex align-items-center justify-content-center h-100" style="min-height: 300px;">
                   <i class="fas fa-chart-line text-white fa-5x"></i>
@@ -58,32 +73,37 @@
     <!-- Rest of Posts Grid -->
     {{ $rest := after 1 $pages }}
     {{ if $rest }}
-    <div class="row g-4">
-      {{ range $rest }}
-      <div class="col-md-6 col-lg-4">
-        <a href="{{ .Permalink }}" class="text-decoration-none">
+    <div class="row g-4" id="blog-grid">
+      {{ range $index, $page := $rest }}
+      <div class="col-md-6 col-lg-4 blog-post {{ if ge $index 7 }}blog-post-hidden{{ end }}"
+           data-index="{{ $index }}"
+           data-title="{{ $page.Title | lower }}"
+           data-description="{{ $page.Params.description | lower }}"
+           data-category="{{ $page.Params.category | lower }}"
+           data-tags="{{ delimit $page.Params.tags " " | lower }}">
+        <a href="{{ $page.Permalink }}" class="text-decoration-none">
           <div class="card h-100 border-0 shadow-sm">
-            {{ with .Params.image }}
-            <img src="{{ . }}" class="card-img-top" alt="{{ $.Title }}" style="height: 200px; object-fit: cover;">
+            {{ with $page.Params.image }}
+            <img src="{{ . }}" class="card-img-top" alt="{{ $page.Title }}" style="height: 200px; object-fit: cover;" loading="lazy">
             {{ else }}
             <div class="card-img-top bg-primary d-flex align-items-center justify-content-center" style="height: 200px;">
               <i class="fas fa-chart-line text-white fa-3x"></i>
             </div>
             {{ end }}
             <div class="card-body">
-              {{ with .Params.category }}
+              {{ with $page.Params.category }}
               <span class="badge bg-primary mb-2">{{ . }}</span>
               {{ end }}
-              <h5 class="card-title text-dark fw-bold">{{ .Title }}</h5>
-              {{ with .Params.description }}
+              <h5 class="card-title text-dark fw-bold">{{ $page.Title }}</h5>
+              {{ with $page.Params.description }}
               <p class="card-text text-muted small">{{ . | truncate 100 }}</p>
               {{ end }}
             </div>
             <div class="card-footer bg-transparent border-0 pt-0">
               <div class="d-flex align-items-center text-muted small">
-                <span><i class="fas fa-calendar me-1"></i>{{ .Date.Format "Jan 2, 2006" }}</span>
+                <span><i class="fas fa-calendar me-1"></i>{{ $page.Date.Format "Jan 2, 2006" }}</span>
                 <span class="mx-2">•</span>
-                <span><i class="fas fa-clock me-1"></i>{{ .ReadingTime }} min</span>
+                <span><i class="fas fa-clock me-1"></i>{{ $page.ReadingTime }} min</span>
               </div>
             </div>
           </div>
@@ -91,6 +111,20 @@
       </div>
       {{ end }}
     </div>
+
+    <!-- Load More / Pagination -->
+    <div class="text-center mt-5" id="load-more-container">
+      <button id="load-more-btn" class="btn btn-outline-primary btn-lg px-5" onclick="loadMorePosts()">
+        <i class="fas fa-plus me-2"></i>Load More Articles
+      </button>
+      <p class="text-muted small mt-2" id="posts-count">Showing <span id="visible-count">8</span> of {{ len $rest }} articles</p>
+    </div>
+
+    <!-- Pagination (shows after 20 posts) -->
+    <nav id="pagination-container" class="mt-5" style="display: none;">
+      <ul class="pagination justify-content-center" id="pagination">
+      </ul>
+    </nav>
     {{ end }}
 
     <!-- Empty State -->
@@ -101,6 +135,13 @@
       <p class="text-muted">We're working on some great content. Check back soon!</p>
     </div>
     {{ end }}
+
+    <!-- No Search Results -->
+    <div id="no-results" class="text-center py-5" style="display: none;">
+      <i class="fas fa-search fa-4x text-muted mb-4"></i>
+      <h3 class="text-muted">No articles found</h3>
+      <p class="text-muted">Try a different search term or <a href="#" onclick="clearSearch(); return false;">clear the search</a>.</p>
+    </div>
   </div>
 </section>
 
@@ -119,4 +160,181 @@
     </div>
   </div>
 </section>
+
+<style>
+.blog-post-hidden { display: none; }
+.blog-post-filtered { display: none !important; }
+</style>
+
+<script>
+const POSTS_PER_LOAD = 4;
+const MAX_LAZY_LOAD = 20;
+const POSTS_PER_PAGE = 12;
+let currentVisible = 7; // Start with 7 (first page after featured)
+let isSearching = false;
+
+function loadMorePosts() {
+  const posts = document.querySelectorAll('#blog-grid .blog-post-hidden:not(.blog-post-filtered)');
+  const toShow = Math.min(POSTS_PER_LOAD, posts.length);
+
+  for (let i = 0; i < toShow; i++) {
+    posts[i].classList.remove('blog-post-hidden');
+    posts[i].style.opacity = '0';
+    setTimeout(() => {
+      posts[i].style.transition = 'opacity 0.3s ease';
+      posts[i].style.opacity = '1';
+    }, i * 100);
+  }
+
+  currentVisible += toShow;
+  updatePostsCount();
+
+  // Check if we should show pagination
+  if (currentVisible >= MAX_LAZY_LOAD - 1) {
+    document.getElementById('load-more-container').style.display = 'none';
+    setupPagination();
+  }
+}
+
+function updatePostsCount() {
+  const total = document.querySelectorAll('#blog-grid .blog-post:not(.blog-post-filtered)').length;
+  const visible = document.querySelectorAll('#blog-grid .blog-post:not(.blog-post-hidden):not(.blog-post-filtered)').length;
+  document.getElementById('visible-count').textContent = visible;
+
+  if (visible >= total) {
+    document.getElementById('load-more-btn').style.display = 'none';
+    document.getElementById('posts-count').textContent = `Showing all ${total} articles`;
+  }
+}
+
+function setupPagination() {
+  const allPosts = document.querySelectorAll('#blog-grid .blog-post:not(.blog-post-filtered)');
+  const totalPages = Math.ceil(allPosts.length / POSTS_PER_PAGE);
+
+  if (totalPages <= 1) return;
+
+  document.getElementById('pagination-container').style.display = 'block';
+  const pagination = document.getElementById('pagination');
+  pagination.innerHTML = '';
+
+  for (let i = 1; i <= totalPages; i++) {
+    const li = document.createElement('li');
+    li.className = 'page-item' + (i === 1 ? ' active' : '');
+    li.innerHTML = `<a class="page-link" href="#" onclick="goToPage(${i}); return false;">${i}</a>`;
+    pagination.appendChild(li);
+  }
+
+  goToPage(1);
+}
+
+function goToPage(page) {
+  const allPosts = Array.from(document.querySelectorAll('#blog-grid .blog-post:not(.blog-post-filtered)'));
+  const start = (page - 1) * POSTS_PER_PAGE;
+  const end = start + POSTS_PER_PAGE;
+
+  allPosts.forEach((post, index) => {
+    if (index >= start && index < end) {
+      post.classList.remove('blog-post-hidden');
+    } else {
+      post.classList.add('blog-post-hidden');
+    }
+  });
+
+  // Update pagination active state
+  document.querySelectorAll('#pagination .page-item').forEach((item, index) => {
+    item.classList.toggle('active', index + 1 === page);
+  });
+
+  // Scroll to top of grid
+  document.getElementById('blog-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function filterBlogPosts() {
+  const searchTerm = document.getElementById('blog-search').value.toLowerCase().trim();
+  const posts = document.querySelectorAll('.blog-post');
+  const noResults = document.getElementById('no-results');
+  const searchInfo = document.getElementById('search-results-info');
+  let matchCount = 0;
+
+  if (!searchTerm) {
+    clearSearch();
+    return;
+  }
+
+  isSearching = true;
+
+  posts.forEach(post => {
+    const title = post.dataset.title || '';
+    const description = post.dataset.description || '';
+    const category = post.dataset.category || '';
+    const tags = post.dataset.tags || '';
+
+    const matches = title.includes(searchTerm) ||
+                    description.includes(searchTerm) ||
+                    category.includes(searchTerm) ||
+                    tags.includes(searchTerm);
+
+    if (matches) {
+      post.classList.remove('blog-post-filtered', 'blog-post-hidden');
+      matchCount++;
+    } else {
+      post.classList.add('blog-post-filtered');
+    }
+  });
+
+  // Update UI
+  document.getElementById('load-more-container').style.display = 'none';
+  document.getElementById('pagination-container').style.display = 'none';
+  noResults.style.display = matchCount === 0 ? 'block' : 'none';
+  searchInfo.style.display = 'block';
+  document.getElementById('search-count').textContent = matchCount + ' article' + (matchCount !== 1 ? 's' : '') + ' found';
+}
+
+function clearSearch() {
+  document.getElementById('blog-search').value = '';
+  document.getElementById('search-results-info').style.display = 'none';
+  document.getElementById('no-results').style.display = 'none';
+
+  const posts = document.querySelectorAll('.blog-post');
+  posts.forEach((post, index) => {
+    post.classList.remove('blog-post-filtered');
+    // Re-hide posts beyond initial view
+    if (post.dataset.index && parseInt(post.dataset.index) >= 7 && parseInt(post.dataset.index) >= currentVisible) {
+      post.classList.add('blog-post-hidden');
+    }
+  });
+
+  if (currentVisible < MAX_LAZY_LOAD - 1) {
+    document.getElementById('load-more-container').style.display = 'block';
+  } else {
+    setupPagination();
+  }
+
+  isSearching = false;
+  updatePostsCount();
+}
+
+// Infinite scroll for lazy loading
+let scrollTimeout;
+window.addEventListener('scroll', () => {
+  if (isSearching) return;
+  if (currentVisible >= MAX_LAZY_LOAD - 1) return;
+
+  clearTimeout(scrollTimeout);
+  scrollTimeout = setTimeout(() => {
+    const container = document.getElementById('load-more-container');
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    if (rect.top < window.innerHeight + 200) {
+      loadMorePosts();
+    }
+  }, 100);
+});
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  updatePostsCount();
+});
+</script>
 {{ end }}

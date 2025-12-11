@@ -8,7 +8,8 @@ const STORES = {
   VISITORS: 'visitors',
   ENGAGEMENT: 'engagement',
   EVENTS: 'events',
-  REALTIME: 'realtime'
+  REALTIME: 'realtime',
+  PASSWORD_RESET_TOKENS: 'password_reset_tokens'
 };
 
 // Get a store instance
@@ -44,6 +45,47 @@ export async function updateUser(email, updates) {
   const updated = { ...user, ...updates };
   await users.setJSON(email, updated);
   return updated;
+}
+
+// === PASSWORD RESET TOKEN OPERATIONS ===
+
+export async function createPasswordResetToken(email, token) {
+  const tokens = store(STORES.PASSWORD_RESET_TOKENS);
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour expiry
+
+  const tokenData = {
+    email,
+    createdAt: now.toISOString(),
+    expiresAt: expiresAt.toISOString()
+  };
+
+  await tokens.setJSON(token, tokenData);
+  return tokenData;
+}
+
+export async function getPasswordResetToken(token) {
+  const tokens = store(STORES.PASSWORD_RESET_TOKENS);
+  try {
+    const tokenData = await tokens.get(token, { type: 'json' });
+    if (!tokenData) return null;
+
+    // Check if token is expired
+    if (new Date(tokenData.expiresAt) < new Date()) {
+      await deletePasswordResetToken(token);
+      return null;
+    }
+
+    return tokenData;
+  } catch (e) {
+    return null;
+  }
+}
+
+export async function deletePasswordResetToken(token) {
+  const tokens = store(STORES.PASSWORD_RESET_TOKENS);
+  await tokens.delete(token);
+  return true;
 }
 
 // === SITE OPERATIONS ===

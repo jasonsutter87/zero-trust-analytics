@@ -12,6 +12,7 @@
     trackScrollDepth: true,
     trackOutboundLinks: true,
     trackFileDownloads: true,
+    trackFormSubmissions: true,
     heartbeatInterval: 15000 // 15 seconds for real-time
   };
 
@@ -40,6 +41,7 @@
     ZTA.config.trackScrollDepth = options.trackScrollDepth !== false;
     ZTA.config.trackOutboundLinks = options.trackOutboundLinks !== false;
     ZTA.config.trackFileDownloads = options.trackFileDownloads !== false;
+    ZTA.config.trackFormSubmissions = options.trackFormSubmissions !== false;
 
     // Initialize session
     ZTA.initSession();
@@ -73,6 +75,11 @@
     // Setup file download tracking
     if (ZTA.config.trackFileDownloads) {
       ZTA.setupFileDownloadTracking();
+    }
+
+    // Setup form submission tracking
+    if (ZTA.config.trackFormSubmissions) {
+      ZTA.setupFormTracking();
     }
 
     // Setup heartbeat for real-time
@@ -540,6 +547,52 @@
     });
   };
 
+  // Setup form submission tracking
+  ZTA.setupFormTracking = function() {
+    document.addEventListener('submit', function(e) {
+      var form = e.target;
+      if (!form || form.tagName !== 'FORM') return;
+
+      // Get form identifier (id, name, or action)
+      var formId = form.id || form.name || '';
+      var formAction = form.action || '';
+
+      // Try to get a meaningful label for the form
+      var formLabel = formId;
+      if (!formLabel) {
+        // Use action URL path
+        try {
+          var actionUrl = new URL(formAction, window.location.origin);
+          formLabel = actionUrl.pathname;
+        } catch (err) {
+          formLabel = 'unknown';
+        }
+      }
+
+      // Get form type based on common patterns
+      var formType = 'form';
+      var formClasses = (form.className || '').toLowerCase();
+      var formIdLower = formId.toLowerCase();
+
+      if (/login|signin|sign-in/i.test(formIdLower + formClasses)) {
+        formType = 'login';
+      } else if (/register|signup|sign-up/i.test(formIdLower + formClasses)) {
+        formType = 'signup';
+      } else if (/contact|message/i.test(formIdLower + formClasses)) {
+        formType = 'contact';
+      } else if (/subscribe|newsletter|email/i.test(formIdLower + formClasses)) {
+        formType = 'subscribe';
+      } else if (/search/i.test(formIdLower + formClasses)) {
+        formType = 'search';
+      } else if (/checkout|payment|order/i.test(formIdLower + formClasses)) {
+        formType = 'checkout';
+      }
+
+      ZTA.trackEvent('form', formType, formLabel);
+      ZTA.log('Form submitted:', formType, formLabel);
+    });
+  };
+
   // Setup heartbeat for real-time tracking
   ZTA.setupHeartbeat = function() {
     setInterval(function() {
@@ -645,6 +698,7 @@
     var trackScroll = script.getAttribute('data-track-scroll') !== 'false';
     var trackOutbound = script.getAttribute('data-track-outbound') !== 'false';
     var trackDownloads = script.getAttribute('data-track-downloads') !== 'false';
+    var trackForms = script.getAttribute('data-track-forms') !== 'false';
 
     if (siteId) {
       ZTA.init(siteId, {
@@ -653,7 +707,8 @@
         debug: debug,
         trackScrollDepth: trackScroll,
         trackOutboundLinks: trackOutbound,
-        trackFileDownloads: trackDownloads
+        trackFileDownloads: trackDownloads,
+        trackFormSubmissions: trackForms
       });
     }
   }

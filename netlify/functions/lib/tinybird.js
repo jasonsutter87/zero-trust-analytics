@@ -154,18 +154,41 @@ async function getStats(siteId, startDate, endDate) {
 async function getRealtime(siteId) {
   const params = { site_id: siteId };
 
-  const [active, recent, perMinute] = await Promise.all([
-    queryPipe('realtime__active_visitors', params),
-    queryPipe('realtime__recent_pageviews', params),
-    queryPipe('realtime__visitors_per_minute', params)
-  ]);
+  // Try to get traffic sources if the pipe exists, otherwise skip
+  let trafficSources = [];
+  try {
+    const [active, recent, perMinute, sources] = await Promise.all([
+      queryPipe('realtime__active_visitors', params),
+      queryPipe('realtime__recent_pageviews', params),
+      queryPipe('realtime__visitors_per_minute', params),
+      queryPipe('realtime__traffic_sources', params).catch(() => [])
+    ]);
 
-  return {
-    active_visitors: active[0]?.active_visitors || 0,
-    pageviews_last_5min: active[0]?.pageviews_last_5min || 0,
-    recent_pageviews: recent,
-    visitors_per_minute: perMinute
-  };
+    trafficSources = sources;
+
+    return {
+      active_visitors: active[0]?.active_visitors || 0,
+      pageviews_last_5min: active[0]?.pageviews_last_5min || 0,
+      recent_pageviews: recent,
+      visitors_per_minute: perMinute,
+      traffic_sources: trafficSources
+    };
+  } catch (err) {
+    // Fallback without traffic sources
+    const [active, recent, perMinute] = await Promise.all([
+      queryPipe('realtime__active_visitors', params),
+      queryPipe('realtime__recent_pageviews', params),
+      queryPipe('realtime__visitors_per_minute', params)
+    ]);
+
+    return {
+      active_visitors: active[0]?.active_visitors || 0,
+      pageviews_last_5min: active[0]?.pageviews_last_5min || 0,
+      recent_pageviews: recent,
+      visitors_per_minute: perMinute,
+      traffic_sources: []
+    };
+  }
 }
 
 /**

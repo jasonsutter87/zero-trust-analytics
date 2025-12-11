@@ -47,6 +47,9 @@ Privacy-focused, anonymous analytics SaaS with Stripe billing.
 - [x] `/api/auth/login` - Authenticate
 - [x] JWT session management
 - [x] Password hashing with bcrypt
+- [x] `/api/auth/forgot` - Forgot password (sends reset email)
+- [x] `/api/auth/reset` - Reset password with token
+- [x] Dual email provider support (Resend + SendGrid fallback)
 
 ---
 
@@ -126,18 +129,18 @@ Privacy-focused, anonymous analytics SaaS with Stripe billing.
 - [x] Outbound link clicks
 - [x] File download tracking
 - [x] Custom event tracking
-- [ ] Form submission tracking
+- [x] Form submission tracking
 
 ### 9.6 Real-Time Analytics
 - [x] Current active visitors
 - [x] Real-time page views
-- [ ] Real-time traffic sources
+- [x] Real-time traffic sources
 
 ### 9.7 Dashboard Enhancements
 - [x] Date range picker
 - [x] Data export (CSV/JSON)
-- [ ] Comparison periods (vs previous period)
-- [ ] Chart visualizations (line, bar, pie)
+- [x] Comparison periods (vs previous period)
+- [x] Chart visualizations (line, bar, pie, doughnut)
 
 ---
 
