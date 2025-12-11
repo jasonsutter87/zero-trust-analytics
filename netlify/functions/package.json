@@ -8,6 +8,7 @@
     "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config ../../tests/jest.config.js --coverage"
   },
   "dependencies": {
+    "@libsql/client": "^0.15.15",
     "@netlify/blobs": "^8.1.0",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
