@@ -59,8 +59,9 @@
       ZTA.setupSPATracking();
     }
 
-    // Setup engagement tracking
-    ZTA.setupEngagementTracking();
+    // Engagement tracking disabled temporarily to avoid rate limits
+    // TODO: Re-enable when on paid Tinybird plan
+    // ZTA.setupEngagementTracking();
 
     // Setup scroll depth tracking
     if (ZTA.config.trackScrollDepth) {
@@ -85,8 +86,9 @@
     // Setup declarative tracking (data-zta-track attributes)
     ZTA.setupDeclarativeTracking();
 
-    // Setup heartbeat for real-time
-    ZTA.setupHeartbeat();
+    // Heartbeat disabled temporarily to avoid rate limits
+    // TODO: Re-enable when on paid Tinybird plan
+    // ZTA.setupHeartbeat();
 
     ZTA.log('Initialized with site ID:', siteId);
   };
