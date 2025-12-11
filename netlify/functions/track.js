@@ -1,5 +1,5 @@
 import { createZTRecord, validateNoPII } from './lib/zero-trust-core.js';
-import { ingestEvents } from './lib/tinybird.js';
+import { ingestEvents } from './lib/turso.js';
 import { getSite } from './lib/storage.js';
 
 // Basic bot detection - filters common bots/crawlers

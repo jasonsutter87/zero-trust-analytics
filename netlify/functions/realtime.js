@@ -1,6 +1,6 @@
 import { authenticateRequest } from './lib/auth.js';
 import { getUserSites } from './lib/storage.js';
-import { getRealtime } from './lib/tinybird.js';
+import { getRealtime } from './lib/turso.js';
 
 export default async function handler(req, context) {
   // Handle CORS preflight
