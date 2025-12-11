@@ -44,6 +44,24 @@ jest.unstable_mockModule('jsonwebtoken', () => ({
   }
 }));
 
+// Mock tinybird
+jest.unstable_mockModule('../../netlify/functions/lib/tinybird.js', () => ({
+  getStats: jest.fn(() => Promise.resolve({
+    pageviews: 100,
+    uniqueVisitors: 50,
+    sessions: 60,
+    bounces: 20,
+    bounceRate: 33.3,
+    avgTimeOnPage: 45,
+    pages: { '/': 50, '/about': 30, '/contact': 20 },
+    referrers: { 'google.com': 40, 'twitter.com': 10 },
+    devices: { desktop: 70, mobile: 25, tablet: 5 },
+    browsers: { Chrome: 60, Firefox: 25, Safari: 15 },
+    operatingSystems: { Windows: 50, macOS: 30 },
+    countries: { US: 60, UK: 20, CA: 20 }
+  }))
+}));
+
 const { __clearAllStores, getStore } = await import('@netlify/blobs');
 
 describe('Stats Endpoint', () => {

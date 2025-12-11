@@ -1,38 +1,53 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container">
-    <a class="navbar-brand" href="/">
-      <strong>Zero Trust Analytics</strong>
-    </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="/#features">Features</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/#pricing">Pricing</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/blog/">Blog</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/about/">About</a>
-        </li>
-        <li class="nav-item auth-logged-out">
-          <a class="nav-link" href="/login/">Login</a>
-        </li>
-        <li class="nav-item auth-logged-out">
-          <a class="nav-link btn btn-primary text-white px-3" href="/register/">Get Started</a>
-        </li>
-        <li class="nav-item auth-logged-in d-none">
-          <a class="nav-link" href="/dashboard/">Dashboard</a>
-        </li>
-        <li class="nav-item auth-logged-in d-none">
-          <a class="nav-link" href="#" onclick="logout(); return false;">Logout</a>
-        </li>
-      </ul>
+<header role="banner">
+  <nav id="primary-nav" class="navbar navbar-expand-lg navbar-dark bg-dark" aria-label="Main navigation">
+    <div class="container">
+      <a class="navbar-brand" href="/" aria-label="Zero Trust Analytics - Home">
+        <strong>Zero Trust Analytics</strong>
+      </a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarNav"
+        aria-controls="navbarNav"
+        aria-expanded="false"
+        aria-label="Toggle navigation menu"
+      >
+        <span class="navbar-toggler-icon" aria-hidden="true"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto" role="menubar">
+          <li class="nav-item" role="none">
+            <a class="nav-link" href="/#features" role="menuitem">Features</a>
+          </li>
+          <li class="nav-item" role="none">
+            <a class="nav-link" href="/#pricing" role="menuitem">Pricing</a>
+          </li>
+          <li class="nav-item" role="none">
+            <a class="nav-link" href="/blog/" role="menuitem">Blog</a>
+          </li>
+          <li class="nav-item" role="none">
+            <a class="nav-link" href="/about/" role="menuitem">About</a>
+          </li>
+          <li class="nav-item auth-logged-out" role="none">
+            <a class="nav-link" href="/login/" role="menuitem">Login</a>
+          </li>
+          <li class="nav-item auth-logged-out" role="none">
+            <a class="nav-link btn btn-primary text-white px-3" href="/register/" role="menuitem">Get Started</a>
+          </li>
+          <li class="nav-item auth-logged-in d-none" role="none">
+            <a class="nav-link" href="/dashboard/" role="menuitem">Dashboard</a>
+          </li>
+          <li class="nav-item auth-logged-in d-none" role="none">
+            <button
+              type="button"
+              class="nav-link btn btn-link"
+              onclick="logout()"
+              role="menuitem"
+            >Logout</button>
+          </li>
+        </ul>
+      </div>
     </div>
-  </div>
-</nav>
+  </nav>
+</header>

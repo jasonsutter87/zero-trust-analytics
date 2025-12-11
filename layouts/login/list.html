@@ -1,22 +1,46 @@
 {{ define "main" }}
 <div class="auth-container">
   <div class="container">
-    <div class="auth-card bg-white mx-auto">
+    <div class="auth-card bg-white mx-auto" role="region" aria-labelledby="login-heading">
       <div class="auth-header">
-        <h1>Welcome Back</h1>
+        <h1 id="login-heading">Welcome Back</h1>
         <p>Sign in to your account</p>
       </div>
 
-      <div class="auth-error alert alert-danger" id="login-error"></div>
+      <div
+        class="auth-error alert alert-danger"
+        id="login-error"
+        role="alert"
+        aria-live="polite"
+        aria-atomic="true"
+      ></div>
 
-      <form class="auth-form" id="login-form" onsubmit="handleLogin(event)">
+      <form class="auth-form" id="login-form" onsubmit="handleLogin(event)" novalidate>
         <div class="mb-3">
           <label for="email" class="form-label">Email address</label>
-          <input type="email" class="form-control" id="email" name="email" required>
+          <input
+            type="email"
+            class="form-control"
+            id="email"
+            name="email"
+            autocomplete="email"
+            required
+            aria-required="true"
+            aria-describedby="email-hint"
+          >
+          <div id="email-hint" class="form-text visually-hidden">Enter your registered email address</div>
         </div>
         <div class="mb-3">
           <label for="password" class="form-label">Password</label>
-          <input type="password" class="form-control" id="password" name="password" required>
+          <input
+            type="password"
+            class="form-control"
+            id="password"
+            name="password"
+            autocomplete="current-password"
+            required
+            aria-required="true"
+          >
         </div>
         <div class="mb-3 text-end">
           <a href="/forgot/" class="text-decoration-none small">Forgot password?</a>

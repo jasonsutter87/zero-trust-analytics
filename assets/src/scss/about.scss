@@ -1,9 +1,10 @@
 // Zero Trust Analytics - About Page Styles
+@import 'shared/variables';
+@import 'shared/mixins';
 
 #inner-page-hero-section {
   padding: 60px 0 40px;
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-  color: white;
+  @include hero-gradient;
 
   h4 {
     font-size: 0.9rem;
@@ -14,11 +15,11 @@
   }
 
   h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
+    font-size: $font-size-xxl + 0.5rem;
+    font-weight: $font-weight-bold;
     margin: 0;
 
-    @media (min-width: 768px) {
+    @include media-md {
       font-size: 3rem;
     }
   }
@@ -26,16 +27,16 @@
 
 #policies-main-section {
   padding: 50px 0 80px;
-  background: #f8f9fa;
+  background: $bg-light;
 
   h2 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #212529;
-    margin-top: 2.5rem;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid #0d6efd;
+    font-size: $font-size-xl;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+    margin-top: $spacer-xl + 0.5rem;
+    margin-bottom: $spacer-md;
+    padding-bottom: $spacer-sm;
+    border-bottom: 2px solid $primary;
 
     &:first-child {
       margin-top: 0;
@@ -43,29 +44,29 @@
   }
 
   p {
-    font-size: 1rem;
-    line-height: 1.7;
-    color: #495057;
-    margin-bottom: 1rem;
+    font-size: $font-size-base;
+    line-height: $line-height-relaxed;
+    color: $gray-700;
+    margin-bottom: $spacer-md;
   }
 
   ul {
-    margin-bottom: 1.5rem;
+    margin-bottom: $spacer-lg;
     padding-left: 1.25rem;
 
     li {
-      margin-bottom: 0.75rem;
+      margin-bottom: $spacer-sm + 0.25rem;
       line-height: 1.6;
-      color: #495057;
+      color: $gray-700;
 
       strong {
-        color: #212529;
+        color: $text-primary;
       }
     }
   }
 
   .btn-primary {
     padding: 12px 30px;
-    font-weight: 500;
+    font-weight: $font-weight-medium;
   }
 }

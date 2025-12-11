@@ -1,5 +1,6 @@
 // Zero Trust Analytics - Dashboard JavaScript
-// Note: API_BASE is defined in auth.js which loads first
+// Requires: shared/auth-service.js, shared/utils.js, shared/api.js, shared/modal.js
+// Note: Uses shared utilities from ZTA namespace
 
 let currentSiteId = null;
 let currentPeriod = '7d';
@@ -393,29 +394,17 @@ async function handleAddSite(event) {
   event.preventDefault();
   const form = event.target;
   const domain = document.getElementById('site-domain').value.trim();
-  const errorEl = document.getElementById('add-site-error');
 
-  errorEl.classList.add('d-none');
+  ZTA.utils.hideElement('add-site-error');
 
   try {
-    const res = await fetch(`${API_BASE}/sites/create`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ domain })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.error || 'Failed to create site');
-    }
+    const data = await ZTA.api.apiPost('/sites/create', { domain });
 
     // Show embed code immediately
     alert('Site created! Embed code:\n\n' + data.embedCode);
 
     // Close modal and reload sites
-    const modal = bootstrap.Modal.getInstance(document.getElementById('addSiteModal'));
-    modal.hide();
+    hideModal('addSiteModal');
     form.reset();
 
     // Reload and select new site
@@ -425,8 +414,9 @@ async function handleAddSite(event) {
 
   } catch (err) {
     console.error('Add site error:', err);
+    const errorEl = document.getElementById('add-site-error');
     errorEl.textContent = err.message;
-    errorEl.classList.remove('d-none');
+    ZTA.utils.showElement(errorEl);
   }
 }
 
@@ -472,28 +462,9 @@ function copyEmbedCode() {
   });
 }
 
-// Helper: Format number with commas
-function formatNumber(num) {
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-}
-
-// Helper: Format duration
-function formatDuration(seconds) {
-  if (!seconds) return '0s';
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  if (mins > 0) {
-    return `${mins}m ${secs}s`;
-  }
-  return `${secs}s`;
-}
-
-// Helper: Truncate string
-function truncate(str, len) {
-  if (!str) return '-';
-  if (str.length <= len) return str;
-  return str.substring(0, len) + '...';
-}
+// Helper functions are now in shared/utils.js
+// Using ZTA.utils.formatNumber, ZTA.utils.formatDuration, ZTA.utils.truncate
+// Aliased globally for backward compatibility
 
 // Helper: Populate table
 function populateTable(tableId, data, emptyLabel = '-') {
@@ -805,10 +776,9 @@ function openSiteSettings() {
   document.getElementById('settings-site-id').value = currentSiteId;
   document.getElementById('settings-domain').value = selectedOption.dataset.domain || selectedOption.textContent;
   document.getElementById('settings-nickname').value = selectedOption.dataset.nickname || '';
-  document.getElementById('site-settings-error').classList.add('d-none');
+  ZTA.utils.hideElement('site-settings-error');
 
-  const modal = new bootstrap.Modal(document.getElementById('siteSettingsModal'));
-  modal.show();
+  showModal('siteSettingsModal');
 }
 
 // Handle site update
@@ -818,26 +788,14 @@ async function handleUpdateSite(event) {
   const siteId = document.getElementById('settings-site-id').value;
   const domain = document.getElementById('settings-domain').value.trim();
   const nickname = document.getElementById('settings-nickname').value.trim();
-  const errorEl = document.getElementById('site-settings-error');
 
-  errorEl.classList.add('d-none');
+  ZTA.utils.hideElement('site-settings-error');
 
   try {
-    const res = await fetch(`${API_BASE}/sites/update`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ siteId, domain, nickname })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.error || 'Failed to update site');
-    }
+    const data = await ZTA.api.apiPost('/sites/update', { siteId, domain, nickname });
 
     // Close modal and reload
-    const modal = bootstrap.Modal.getInstance(document.getElementById('siteSettingsModal'));
-    modal.hide();
+    hideModal('siteSettingsModal');
     await loadSites();
 
     // Re-select the site
@@ -846,8 +804,9 @@ async function handleUpdateSite(event) {
 
   } catch (err) {
     console.error('Update site error:', err);
+    const errorEl = document.getElementById('site-settings-error');
     errorEl.textContent = err.message;
-    errorEl.classList.remove('d-none');
+    ZTA.utils.showElement(errorEl);
   }
 }
 
@@ -864,21 +823,10 @@ function confirmDeleteSite() {
 // Delete site
 async function deleteSite(siteId) {
   try {
-    const res = await fetch(`${API_BASE}/sites/delete`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ siteId })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.error || 'Failed to delete site');
-    }
+    await ZTA.api.apiPost('/sites/delete', { siteId });
 
     // Close modal and reload
-    const modal = bootstrap.Modal.getInstance(document.getElementById('siteSettingsModal'));
-    modal.hide();
+    hideModal('siteSettingsModal');
 
     alert('Site deleted successfully');
     await loadSites();
@@ -894,17 +842,7 @@ async function deleteSite(siteId) {
 // Start checkout for subscription
 async function startCheckout() {
   try {
-    const res = await fetch(`${API_BASE}/stripe/checkout`, {
-      method: 'POST',
-      headers: getAuthHeaders()
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.error);
-    }
-
+    const data = await ZTA.api.apiPost('/stripe/checkout');
     // Redirect to Stripe checkout
     window.location.href = data.url;
   } catch (err) {
@@ -916,17 +854,7 @@ async function startCheckout() {
 // Open billing portal
 async function openBillingPortal() {
   try {
-    const res = await fetch(`${API_BASE}/stripe/portal`, {
-      method: 'POST',
-      headers: getAuthHeaders()
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.error);
-    }
-
+    const data = await ZTA.api.apiPost('/stripe/portal');
     // Redirect to Stripe portal
     window.location.href = data.url;
   } catch (err) {
