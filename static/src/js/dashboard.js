@@ -3387,3 +3387,243 @@ function getRoleBadgeClass(role) {
 function capitalizeFirst(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+// === GOAL TRACKING ===
+
+let currentGoals = [];
+
+function openGoalsModal() {
+  if (!currentSiteId) {
+    document.getElementById('goals-no-site').classList.remove('d-none');
+    document.getElementById('goal-create-section').classList.add('d-none');
+  } else {
+    document.getElementById('goals-no-site').classList.add('d-none');
+    document.getElementById('goal-create-section').classList.remove('d-none');
+  }
+
+  // Reset form
+  document.getElementById('new-goal-name').value = '';
+  document.getElementById('new-goal-metric').value = 'pageviews';
+  document.getElementById('new-goal-target').value = '';
+  document.getElementById('new-goal-period').value = 'monthly';
+  document.getElementById('new-goal-comparison').value = 'gte';
+  document.getElementById('new-goal-notify').checked = true;
+
+  // Reset state
+  document.getElementById('goals-loading').classList.remove('d-none');
+  document.getElementById('goals-list').classList.add('d-none');
+  document.getElementById('goals-empty').classList.add('d-none');
+
+  // Show modal
+  const modal = new bootstrap.Modal(document.getElementById('goalsModal'));
+  modal.show();
+
+  // Load existing goals
+  if (currentSiteId) {
+    loadGoals();
+  } else {
+    document.getElementById('goals-loading').classList.add('d-none');
+  }
+}
+
+async function loadGoals() {
+  if (!currentSiteId) return;
+
+  const loadingEl = document.getElementById('goals-loading');
+  const listEl = document.getElementById('goals-list');
+  const emptyEl = document.getElementById('goals-empty');
+
+  try {
+    const res = await fetch(`${API_BASE}/goals?siteId=${currentSiteId}`, {
+      headers: getAuthHeaders()
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error);
+    }
+
+    loadingEl.classList.add('d-none');
+    currentGoals = data.goals || [];
+
+    if (currentGoals.length === 0) {
+      emptyEl.classList.remove('d-none');
+      return;
+    }
+
+    listEl.classList.remove('d-none');
+    listEl.innerHTML = currentGoals.map(goal => {
+      const progressClass = goal.isComplete ? 'bg-success' : (goal.progress >= 75 ? 'bg-warning' : 'bg-primary');
+      const statusBadge = goal.isComplete
+        ? '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Complete</span>'
+        : `<span class="badge bg-secondary">${goal.progress}%</span>`;
+
+      const metricLabel = getMetricLabel(goal.metric);
+      const periodLabel = getPeriodLabel(goal.period);
+      const comparisonLabel = goal.comparison === 'gte' ? '≥' : '≤';
+      const targetDisplay = formatMetricValue(goal.target, goal.metric);
+      const currentDisplay = formatMetricValue(goal.currentValue, goal.metric);
+
+      return `
+        <div class="card mb-3">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <h6 class="mb-1">${escapeHtml(goal.name)}</h6>
+                <div class="small text-muted">
+                  ${metricLabel} ${comparisonLabel} ${targetDisplay} ${periodLabel}
+                </div>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                ${statusBadge}
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteGoal('${goal.id}')" title="Delete goal">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+            <div class="progress mb-2" style="height: 8px;">
+              <div class="progress-bar ${progressClass}" role="progressbar" style="width: ${goal.progress}%"
+                   aria-valuenow="${goal.progress}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div class="d-flex justify-content-between small">
+              <span class="text-muted">Current: <strong>${currentDisplay}</strong></span>
+              <span class="text-muted">Target: <strong>${targetDisplay}</strong></span>
+            </div>
+            ${goal.completedAt ? `
+              <div class="small text-success mt-2">
+                <i class="bi bi-trophy me-1"></i>Completed ${new Date(goal.completedAt).toLocaleDateString()}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+  } catch (err) {
+    console.error('Load goals error:', err);
+    loadingEl.innerHTML = '<p class="text-danger">Failed to load goals</p>';
+  }
+}
+
+async function createGoal() {
+  if (!currentSiteId) {
+    alert('Please select a site first');
+    return;
+  }
+
+  const name = document.getElementById('new-goal-name').value.trim();
+  const metric = document.getElementById('new-goal-metric').value;
+  const target = document.getElementById('new-goal-target').value;
+  const period = document.getElementById('new-goal-period').value;
+  const comparison = document.getElementById('new-goal-comparison').value;
+  const notifyOnComplete = document.getElementById('new-goal-notify').checked;
+
+  if (!target || parseInt(target) < 1) {
+    alert('Please enter a valid target');
+    return;
+  }
+
+  const btn = event.target;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Creating...';
+
+  try {
+    const res = await fetch(`${API_BASE}/goals`, {
+      method: 'POST',
+      headers: {
+        ...getAuthHeaders(),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        siteId: currentSiteId,
+        name: name || `${getMetricLabel(metric)} Goal`,
+        metric,
+        target: parseInt(target),
+        period,
+        comparison,
+        notifyOnComplete
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to create goal');
+    }
+
+    // Reset form
+    document.getElementById('new-goal-name').value = '';
+    document.getElementById('new-goal-target').value = '';
+
+    // Reload goals
+    loadGoals();
+
+  } catch (err) {
+    console.error('Create goal error:', err);
+    alert('Failed to create goal: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-plus-lg me-1"></i>Create Goal';
+  }
+}
+
+async function deleteGoal(goalId) {
+  if (!confirm('Are you sure you want to delete this goal?')) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/goals?goalId=${goalId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || 'Failed to delete goal');
+    }
+
+    // Reload goals
+    loadGoals();
+
+  } catch (err) {
+    console.error('Delete goal error:', err);
+    alert('Failed to delete goal: ' + err.message);
+  }
+}
+
+function getMetricLabel(metric) {
+  const labels = {
+    'pageviews': 'Pageviews',
+    'visitors': 'Unique Visitors',
+    'sessions': 'Sessions',
+    'events': 'Events',
+    'bounce_rate': 'Bounce Rate',
+    'session_duration': 'Avg Session Duration'
+  };
+  return labels[metric] || metric;
+}
+
+function getPeriodLabel(period) {
+  const labels = {
+    'daily': 'per Day',
+    'weekly': 'per Week',
+    'monthly': 'per Month',
+    'quarterly': 'per Quarter',
+    'yearly': 'per Year'
+  };
+  return labels[period] || period;
+}
+
+function formatMetricValue(value, metric) {
+  if (metric === 'bounce_rate') {
+    return `${value}%`;
+  }
+  if (metric === 'session_duration') {
+    const minutes = Math.floor(value / 60);
+    const seconds = value % 60;
+    return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+  }
+  return value.toLocaleString();
+}
