@@ -19,15 +19,20 @@ function store(name) {
 
 // === USER OPERATIONS ===
 
-export async function createUser(email, passwordHash) {
+export async function createUser(email, passwordHash, plan = 'pro') {
   const users = store(STORES.USERS);
   const userId = 'user_' + Date.now();
+  const now = new Date();
+  const trialEndsAt = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000); // 14 days
+
   const user = {
     id: userId,
     email,
     passwordHash,
-    createdAt: new Date().toISOString(),
-    subscription: null
+    createdAt: now.toISOString(),
+    plan,
+    trialEndsAt: trialEndsAt.toISOString(),
+    subscription: null // Will be set when Stripe subscription is created
   };
   await users.setJSON(email, user);
   return user;
@@ -45,6 +50,46 @@ export async function updateUser(email, updates) {
   const updated = { ...user, ...updates };
   await users.setJSON(email, updated);
   return updated;
+}
+
+// Check user's subscription/trial status
+export function getUserStatus(user) {
+  if (!user) {
+    return { status: 'none', canAccess: false };
+  }
+
+  // Active subscription takes priority
+  if (user.subscription && user.subscription.status === 'active') {
+    return {
+      status: 'active',
+      plan: user.plan || 'pro',
+      canAccess: true,
+      subscription: user.subscription
+    };
+  }
+
+  // Check trial status
+  const now = new Date();
+  const trialEndsAt = user.trialEndsAt ? new Date(user.trialEndsAt) : null;
+
+  if (trialEndsAt && now < trialEndsAt) {
+    const daysLeft = Math.ceil((trialEndsAt - now) / (1000 * 60 * 60 * 24));
+    return {
+      status: 'trial',
+      plan: user.plan || 'pro',
+      canAccess: true,
+      trialEndsAt: user.trialEndsAt,
+      daysLeft
+    };
+  }
+
+  // Trial expired, no active subscription
+  return {
+    status: 'expired',
+    plan: user.plan || 'pro',
+    canAccess: false,
+    trialEndsAt: user.trialEndsAt
+  };
 }
 
 // === PASSWORD RESET TOKEN OPERATIONS ===

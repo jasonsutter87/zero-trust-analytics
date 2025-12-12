@@ -56,6 +56,7 @@ async function handleRegister(event) {
   const email = form.email.value;
   const password = form.password.value;
   const confirmPassword = form.confirmPassword.value;
+  const plan = form.plan?.value || 'pro'; // Get selected plan from hidden field
 
   // Validate passwords match
   if (password !== confirmPassword) {
@@ -70,7 +71,7 @@ async function handleRegister(event) {
     const res = await fetch(`${API_BASE}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password, plan })
     });
 
     const data = await res.json();

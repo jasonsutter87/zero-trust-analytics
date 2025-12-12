@@ -16,9 +16,45 @@ let previousPeriodData = null;
 document.addEventListener('DOMContentLoaded', function() {
   if (!requireAuth()) return;
   checkCheckoutStatus();
+  checkUserStatus();
   loadSites();
   initDatePickers();
 });
+
+// Check user's subscription/trial status
+async function checkUserStatus() {
+  try {
+    const res = await fetch(`${API_BASE}/user/status`, {
+      headers: getAuthHeaders()
+    });
+
+    if (!res.ok) return;
+
+    const data = await res.json();
+    const trialBanner = document.getElementById('trial-banner');
+    const expiredBanner = document.getElementById('expired-banner');
+    const trialText = document.getElementById('trial-status-text');
+
+    if (data.status === 'trial') {
+      // Show trial banner with days remaining
+      if (trialBanner && trialText) {
+        trialText.textContent = data.daysLeft === 1
+          ? '1 day left in your free trial'
+          : `${data.daysLeft} days left in your free trial`;
+        trialBanner.classList.remove('d-none');
+      }
+    } else if (data.status === 'expired') {
+      // Show expired banner
+      if (expiredBanner) {
+        expiredBanner.classList.remove('d-none');
+      }
+    }
+    // If status is 'active', don't show any banner
+
+  } catch (err) {
+    console.error('Failed to check user status:', err);
+  }
+}
 
 // Initialize date pickers with default values
 function initDatePickers() {

@@ -33,8 +33,8 @@ jest.unstable_mockModule('@netlify/blobs', () => {
   };
 });
 
-// Mock tinybird
-jest.unstable_mockModule('../../netlify/functions/lib/tinybird.js', () => ({
+// Mock turso (replaced tinybird)
+jest.unstable_mockModule('../../netlify/functions/lib/turso.js', () => ({
   ingestEvents: jest.fn(() => Promise.resolve({ success: true }))
 }));
 

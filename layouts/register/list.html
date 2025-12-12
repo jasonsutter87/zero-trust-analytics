@@ -4,7 +4,7 @@
     <div class="auth-card bg-white mx-auto" role="region" aria-labelledby="register-heading">
       <div class="auth-header">
         <h1 id="register-heading">Get Started</h1>
-        <p>Create your account - $10/month</p>
+        <p id="plan-description">14-day free trial. No credit card required.</p>
       </div>
 
       <div
@@ -15,7 +15,16 @@
         aria-atomic="true"
       ></div>
 
+      <!-- Selected Plan Badge -->
+      <div id="selected-plan-badge" class="alert alert-light border mb-3 d-none">
+        <div class="d-flex justify-content-between align-items-center">
+          <span><strong id="plan-name">Pro</strong> plan - <span id="plan-price">$29/mo</span></span>
+          <a href="/#pricing" class="btn btn-sm btn-outline-secondary">Change</a>
+        </div>
+      </div>
+
       <form class="auth-form" id="register-form" onsubmit="handleRegister(event)" novalidate>
+        <input type="hidden" id="selected-plan" name="plan" value="pro">
         <div class="mb-3">
           <label for="email" class="form-label">Email address</label>
           <input
@@ -68,4 +77,30 @@
     </div>
   </div>
 </div>
+
+<script>
+// Plan configuration
+const PLANS = {
+  solo: { name: 'Solo', price: '$5/mo', pageviews: '10k' },
+  starter: { name: 'Starter', price: '$15/mo', pageviews: '50k' },
+  pro: { name: 'Pro', price: '$29/mo', pageviews: '100k' },
+  business: { name: 'Business', price: '$79/mo', pageviews: '1M' },
+  scale: { name: 'Scale', price: '$199/mo', pageviews: '10M' }
+};
+
+// Read plan from URL and update UI
+document.addEventListener('DOMContentLoaded', function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const planId = urlParams.get('plan') || 'pro';
+  const plan = PLANS[planId] || PLANS.pro;
+
+  // Update hidden field
+  document.getElementById('selected-plan').value = planId;
+
+  // Update plan badge
+  document.getElementById('plan-name').textContent = plan.name;
+  document.getElementById('plan-price').textContent = plan.price;
+  document.getElementById('selected-plan-badge').classList.remove('d-none');
+});
+</script>
 {{ end }}

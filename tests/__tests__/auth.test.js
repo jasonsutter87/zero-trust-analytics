@@ -1,4 +1,5 @@
 import { jest } from '@jest/globals';
+import { createHeaders } from './helpers.js';
 
 // Mock @netlify/blobs
 jest.unstable_mockModule('@netlify/blobs', () => {
@@ -66,13 +67,14 @@ describe('Auth Endpoints', () => {
 
       const req = {
         method: 'POST',
+        headers: createHeaders({}),
         json: async () => ({
           email: 'newuser@example.com',
           password: 'securePassword123'
         })
       };
 
-      const response = await handler(req, {});
+      const response = await handler(req, { ip: '127.0.0.1' });
       const data = await response.json();
 
       expect(response.status).toBe(201);
@@ -85,12 +87,13 @@ describe('Auth Endpoints', () => {
 
       const req = {
         method: 'POST',
+        headers: createHeaders({}),
         json: async () => ({
           password: 'securePassword123'
         })
       };
 
-      const response = await handler(req, {});
+      const response = await handler(req, { ip: '127.0.0.1' });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -102,12 +105,13 @@ describe('Auth Endpoints', () => {
 
       const req = {
         method: 'POST',
+        headers: createHeaders({}),
         json: async () => ({
           email: 'user@example.com'
         })
       };
 
-      const response = await handler(req, {});
+      const response = await handler(req, { ip: '127.0.0.1' });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -119,23 +123,25 @@ describe('Auth Endpoints', () => {
 
       const req1 = {
         method: 'POST',
+        headers: createHeaders({}),
         json: async () => ({
           email: 'duplicate@example.com',
           password: 'password123'
         })
       };
 
-      await handler(req1, {});
+      await handler(req1, { ip: '127.0.0.1' });
 
       const req2 = {
         method: 'POST',
+        headers: createHeaders({}),
         json: async () => ({
           email: 'duplicate@example.com',
           password: 'differentPassword'
         })
       };
 
-      const response = await handler(req2, {});
+      const response = await handler(req2, { ip: '127.0.0.2' });
       const data = await response.json();
 
       expect(response.status).toBe(409);  // 409 Conflict for duplicate
@@ -163,21 +169,23 @@ describe('Auth Endpoints', () => {
 
       await registerHandler({
         method: 'POST',
+        headers: createHeaders({}),
         json: async () => ({
           email: 'login@example.com',
           password: 'password123'
         })
-      }, {});
+      }, { ip: '127.0.0.1' });
 
       const loginReq = {
         method: 'POST',
+        headers: createHeaders({}),
         json: async () => ({
           email: 'login@example.com',
           password: 'password123'
         })
       };
 
-      const response = await loginHandler(loginReq, {});
+      const response = await loginHandler(loginReq, { ip: '127.0.0.1' });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -190,21 +198,23 @@ describe('Auth Endpoints', () => {
 
       await registerHandler({
         method: 'POST',
+        headers: createHeaders({}),
         json: async () => ({
           email: 'wrongpass@example.com',
           password: 'correctPassword'
         })
-      }, {});
+      }, { ip: '127.0.0.1' });
 
       const loginReq = {
         method: 'POST',
+        headers: createHeaders({}),
         json: async () => ({
           email: 'wrongpass@example.com',
           password: 'wrongPassword'
         })
       };
 
-      const response = await loginHandler(loginReq, {});
+      const response = await loginHandler(loginReq, { ip: '127.0.0.1' });
       const data = await response.json();
 
       expect(response.status).toBe(401);
@@ -216,13 +226,14 @@ describe('Auth Endpoints', () => {
 
       const loginReq = {
         method: 'POST',
+        headers: createHeaders({}),
         json: async () => ({
           email: 'nonexistent@example.com',
           password: 'password123'
         })
       };
 
-      const response = await loginHandler(loginReq, {});
+      const response = await loginHandler(loginReq, { ip: '127.0.0.1' });
       const data = await response.json();
 
       expect(response.status).toBe(401);

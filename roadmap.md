@@ -207,3 +207,213 @@ Privacy-focused, anonymous analytics SaaS with Stripe billing.
 - Production: https://zerotrustanalytics.com
 - Netlify: https://zerotrustanalytics.netlify.app
 
+---
+
+# Q1 2026 ROADMAP (January - March)
+
+*Updated: December 11, 2025 - Post-launch planning session*
+
+**Goal:** 100 paying customers, $1,000 MRR by end of Q1
+
+---
+
+## Phase 12: Stabilize & Relaunch (January 2026)
+
+**Target: 10 paying customers, $100 MRR**
+
+### 12.1 Critical Fixes (Week 1-2)
+- [ ] Delete Tinybird code completely (lib/tinybird.js, /tinybird/ directory)
+- [ ] Fix JWT expiration check (tokens currently never expire)
+- [ ] Add rate limiting to /api/track and /api/auth/* endpoints
+- [ ] Remove debug colors from _header.scss (red/green/blue backgrounds)
+- [ ] Fix pricing mismatch (register page vs homepage)
+- [ ] Standardize error responses across all API endpoints
+
+### 12.2 Dashboard Charts (Week 1-2)
+- [ ] Verify Chart.js is working in production
+- [ ] Add visitors/pageviews line chart (daily trends)
+- [ ] Add traffic sources doughnut chart
+- [ ] Add device breakdown bar chart
+- [ ] Ensure chart accessibility (alt text, data tables)
+
+### 12.3 Growth Foundation (Week 2-3)
+- [ ] Add 14-day free trial (no credit card required)
+- [ ] Create demo account with sample data (public dashboard)
+- [ ] Add annual billing option ($100/year - save $20)
+- [ ] Build basic email onboarding sequence (Day 0, 3, 7, 14)
+
+### 12.4 Launch Campaign (Week 3-4)
+- [ ] Product Hunt launch (aim for Top 5 Product of Day)
+- [ ] Hacker News Show HN post
+- [ ] Reddit posts (r/privacy, r/webdev, r/SideProject)
+- [ ] Submit to 20 directories (AlternativeTo, G2, SaaSHub, Capterra)
+
+### 12.5 Content & SEO (Week 1-4)
+- [ ] Add JSON-LD structured data (Organization, SoftwareApplication, FAQ)
+- [ ] Create /vs/google-analytics/ comparison page
+- [ ] Create /vs/plausible/ comparison page
+- [ ] Create /vs/fathom/ comparison page
+- [ ] Blog: "Zero Trust Analytics vs Google Analytics: Complete Comparison 2026"
+- [ ] Blog: "How to Migrate from Google Analytics in 10 Minutes"
+- [ ] Blog: "The Best Google Analytics Alternatives for Privacy in 2026"
+- [ ] Blog: "Why Real Estate Agents Need GDPR-Compliant Analytics"
+
+### 12.6 Observability (Week 2)
+- [ ] Set up Sentry for error tracking
+- [ ] Set up BetterUptime for uptime monitoring
+- [ ] Install ZTA analytics on zerotrustanalytics.com (eat your own dogfood!)
+
+---
+
+## Phase 13: Growth Engine (February 2026)
+
+**Target: 50 paying customers, $500 MRR**
+
+### 13.1 Performance & Caching (Week 1-2)
+- [ ] Add Redis/Upstash caching layer ($10/month)
+- [ ] Cache dashboard stats for 5 minutes
+- [ ] Cache site configs
+- [ ] Add missing Turso indexes
+- [ ] Optimize hot query paths
+- [ ] Implement pre-aggregation for dashboard stats
+
+### 13.2 Integrations (Week 2-3)
+- [ ] Build WordPress plugin (critical - 43% of web)
+- [ ] Create Zapier integration
+- [ ] Write Next.js integration guide
+- [ ] Write React SPA setup guide
+- [ ] Write Shopify integration guide
+
+### 13.3 Onboarding & UX (Week 3-4)
+- [ ] Build onboarding wizard (add site → install script → verify → celebrate)
+- [ ] Add contextual tooltips for first-time users
+- [ ] Redesign dashboard information hierarchy (tabs: Overview | Pages | Sources | Tech | Geo)
+- [ ] Fix mobile dashboard (increase fonts, card-based tables)
+- [ ] Add loading skeleton screens
+
+### 13.4 Content (Week 1-4)
+- [ ] Blog: "Plausible vs Zero Trust Analytics: Which is Right for You?"
+- [ ] Blog: "Fathom vs Zero Trust Analytics: Pricing & Features Compared"
+- [ ] Blog: "The Complete Guide to HIPAA-Compliant Website Analytics"
+- [ ] Blog: "Legal Website Analytics: Bar Association Rules on Client Data"
+- [ ] Blog: "How We Built Analytics That Literally Can't Track Users"
+- [ ] Blog: "Daily Salt Rotation: Why Most Privacy Analytics Still Track You"
+- [ ] Blog: "Analytics for SaaS: Track Signups Without Compromising Privacy"
+- [ ] Blog: "Benchmarking Analytics Scripts: Why 3KB Matters for Core Web Vitals"
+- [ ] Record 5-minute setup video walkthrough
+- [ ] Create WordPress plugin documentation
+
+### 13.5 Testing (Week 4)
+- [ ] Add integration tests for critical flows (signup → create site → track → view)
+- [ ] Set up automated testing in CI/CD
+- [ ] Add test coverage reporting (target: 80%)
+
+---
+
+## Phase 14: Scale & Monetize (March 2026)
+
+**Target: 100 paying customers, $1,000 MRR**
+
+### 14.1 Revenue Features
+- [ ] Add team collaboration (invite users to account)
+- [ ] Add custom email alerts (traffic spikes, zero data)
+- [ ] Add public dashboards (share stats publicly - viral loop)
+- [ ] Create API access tier
+- [ ] Launch $20/month HIPAA tier with BAA signing
+
+### 14.2 Pricing Tiers
+- [ ] Free tier: 10k pageviews/month, 1 site, 90-day retention
+- [ ] Pro ($10/month): 100k pageviews, 10 sites, unlimited retention
+- [ ] HIPAA ($20/month): 200k pageviews, 25 sites, BAA included
+- [ ] Agency ($50/month): 1M pageviews, unlimited sites, white-label, API
+
+### 14.3 Growth Programs
+- [ ] Launch referral program (give $10, get $10)
+- [ ] Outreach to 20 web agencies (reseller program)
+- [ ] Partner with 3 privacy-focused newsletters
+- [ ] First paid ads test ($500 budget - Google/Reddit/LinkedIn)
+
+### 14.4 Content & Authority
+- [ ] Blog: "E-commerce Analytics Without Tracking: Track Sales, Not People"
+- [ ] Blog: "Why Cookie Banners Will Be Illegal by 2026"
+- [ ] Blog: "The $2.5M GDPR Fine That Changed Website Analytics"
+- [ ] Create 3 customer case studies
+- [ ] Launch public changelog
+- [ ] Launch email newsletter
+
+### 14.5 Advanced Features
+- [ ] Real-time dashboard updates (WebSocket or SSE)
+- [ ] Slack integration for alerts
+- [ ] Comparison mode improvements (visual bars/charts)
+- [ ] Keyboard shortcuts (?, Cmd+K)
+
+### 14.6 Design Polish
+- [ ] New color palette (unique brand identity, not Bootstrap blue)
+- [ ] Custom logo design
+- [ ] Dark mode option
+- [ ] Custom illustrations for empty states
+- [ ] Micro-interactions and animations
+
+---
+
+## Success Metrics
+
+### Month 1 (January)
+- [ ] 10 paying customers ($100 MRR)
+- [ ] 500 trial signups
+- [ ] 5,000 website visitors
+- [ ] Product Hunt Top 10 finish
+- [ ] 4 blog posts published
+
+### Month 2 (February)
+- [ ] 50 paying customers ($500 MRR)
+- [ ] 2,000 trial signups
+- [ ] 20,000 website visitors
+- [ ] WordPress plugin launched
+- [ ] 8 blog posts total (12 cumulative)
+
+### Month 3 (March)
+- [ ] 100 paying customers ($1,000 MRR)
+- [ ] 5,000 trial signups
+- [ ] 50,000 website visitors
+- [ ] 10% trial-to-paid conversion rate
+- [ ] 25 blog posts total
+- [ ] 100+ referring domains
+
+---
+
+## Target Customer Segments (Prioritized)
+
+1. **Privacy-Conscious Developers** - High intent, quick conversion
+2. **HIPAA-Regulated Healthcare** - Dental, therapy, medical practices
+3. **GDPR-Compliant EU Businesses** - Large market, compliance pain
+4. **Web Agencies** - High LTV, unlimited sites value prop
+5. **Ethical Brands/B-Corps** - Brand alignment
+
+---
+
+## Tech Stack Update
+
+| Component | Technology |
+|-----------|------------|
+| Frontend | Hugo + Bootstrap 5 |
+| Backend | Netlify Functions (Node.js) |
+| Storage | Netlify Blobs (users, sites) + Turso (analytics) |
+| Auth | JWT + bcrypt |
+| Payments | Stripe |
+| Email | Resend + SendGrid (fallback) |
+| Caching | Upstash Redis (planned) |
+| Monitoring | Sentry + BetterUptime (planned) |
+
+---
+
+## Risk Mitigation
+
+| Risk | Likelihood | Mitigation |
+|------|------------|------------|
+| Free tier cannibalizes paid | High | Set at 10k pageviews (personal blogs only) |
+| High-volume abuse | Medium | Add usage-based overage ($1 per 10k extra) |
+| HIPAA claims without legal review | Low | Add disclaimer, get BAA reviewed by lawyer |
+| Can't compete with free (GA) | Medium | Target customers already decided "no Google" |
+| Competitors copy approach | High | Build community moat, first-mover advantage |
+
