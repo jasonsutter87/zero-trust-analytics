@@ -1746,6 +1746,172 @@ function exportPDF() {
   }, 100);
 }
 
+// === API KEY MANAGEMENT ===
+
+function openApiKeysModal() {
+  // Reset state
+  document.getElementById('api-keys-loading').classList.remove('d-none');
+  document.getElementById('api-keys-list').classList.add('d-none');
+  document.getElementById('api-keys-empty').classList.add('d-none');
+  document.getElementById('new-key-display').classList.add('d-none');
+  document.getElementById('new-key-name').value = '';
+  document.getElementById('new-key-permissions').value = 'read';
+
+  // Show modal
+  const modal = new bootstrap.Modal(document.getElementById('apiKeysModal'));
+  modal.show();
+
+  // Load keys
+  loadApiKeys();
+}
+
+async function loadApiKeys() {
+  const loadingEl = document.getElementById('api-keys-loading');
+  const listEl = document.getElementById('api-keys-list');
+  const emptyEl = document.getElementById('api-keys-empty');
+
+  try {
+    const res = await fetch(`${API_BASE}/keys`, {
+      headers: getAuthHeaders()
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error);
+    }
+
+    loadingEl.classList.add('d-none');
+
+    if (!data.keys || data.keys.length === 0) {
+      emptyEl.classList.remove('d-none');
+      return;
+    }
+
+    listEl.classList.remove('d-none');
+    listEl.innerHTML = data.keys.map(key => {
+      const createdDate = new Date(key.createdAt).toLocaleDateString();
+      const lastUsed = key.lastUsedAt ? formatRelativeTime(key.lastUsedAt) : 'Never used';
+      const permissions = key.permissions.join(', ');
+
+      return `
+        <div class="d-flex justify-content-between align-items-center py-3 border-bottom">
+          <div class="d-flex align-items-center">
+            <div class="me-3 text-muted" style="font-size: 1.5rem;">
+              <i class="bi bi-key"></i>
+            </div>
+            <div>
+              <div class="fw-bold">${escapeHtml(key.name)}</div>
+              <div class="small">
+                <code class="text-muted">${key.keyPrefix}</code>
+              </div>
+              <div class="small text-muted">
+                ${permissions} &bull; Created ${createdDate} &bull; ${lastUsed}
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-sm btn-outline-danger" onclick="revokeApiKey('${key.id}')" title="Revoke key">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      `;
+    }).join('');
+
+  } catch (err) {
+    console.error('Load API keys error:', err);
+    loadingEl.innerHTML = '<p class="text-danger">Failed to load API keys</p>';
+  }
+}
+
+async function createApiKey() {
+  const nameInput = document.getElementById('new-key-name');
+  const permissionsSelect = document.getElementById('new-key-permissions');
+  const name = nameInput.value.trim() || 'Unnamed Key';
+  const permissions = permissionsSelect.value.split(',');
+
+  const btn = event.target;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Creating...';
+
+  try {
+    const res = await fetch(`${API_BASE}/keys`, {
+      method: 'POST',
+      headers: {
+        ...getAuthHeaders(),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ name, permissions })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to create API key');
+    }
+
+    // Show the new key
+    document.getElementById('new-key-value').value = data.key.key;
+    document.getElementById('new-key-display').classList.remove('d-none');
+
+    // Reset form
+    nameInput.value = '';
+    permissionsSelect.value = 'read';
+
+    // Reload keys list
+    loadApiKeys();
+
+  } catch (err) {
+    console.error('Create API key error:', err);
+    alert('Failed to create API key: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-plus-lg me-1"></i>Generate API Key';
+  }
+}
+
+function copyNewApiKey() {
+  const keyValue = document.getElementById('new-key-value').value;
+  navigator.clipboard.writeText(keyValue).then(() => {
+    const btn = event.target.closest('button');
+    btn.innerHTML = '<i class="bi bi-check"></i>';
+    setTimeout(() => {
+      btn.innerHTML = '<i class="bi bi-clipboard"></i>';
+    }, 2000);
+  });
+}
+
+async function revokeApiKey(keyId) {
+  if (!confirm('Are you sure you want to revoke this API key? This cannot be undone.')) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/keys?keyId=${keyId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || 'Failed to revoke key');
+    }
+
+    // Reload keys
+    loadApiKeys();
+
+  } catch (err) {
+    console.error('Revoke API key error:', err);
+    alert('Failed to revoke API key: ' + err.message);
+  }
+}
+
+// Helper to escape HTML
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 function showKeyboardShortcutsHelp() {
   // Check if modal already exists
   let modal = document.getElementById('keyboardShortcutsModal');

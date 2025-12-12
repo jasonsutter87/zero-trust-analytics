@@ -45,6 +45,9 @@
         <button class="btn btn-outline-secondary btn-sm" onclick="openSessionsModal()" aria-label="Manage sessions">
           <i class="fas fa-shield-alt me-1" aria-hidden="true"></i>Sessions
         </button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="openApiKeysModal()" aria-label="Manage API keys">
+          <i class="fas fa-key me-1" aria-hidden="true"></i>API Keys
+        </button>
         <button class="btn btn-outline-secondary" onclick="openBillingPortal()" aria-label="Open billing portal">
           <i class="fas fa-credit-card me-1" aria-hidden="true"></i>Billing
         </button>
@@ -563,6 +566,95 @@ ZTA.track('purchase', { amount: 99 });
 ZTA.track('download', { file: 'report.pdf' });</code></pre>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- API Keys Modal -->
+<div class="modal fade" id="apiKeysModal" tabindex="-1" aria-labelledby="apiKeysModalTitle">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="apiKeysModalTitle">
+          <i class="bi bi-key me-2"></i>API Keys
+        </h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted mb-3">API keys allow programmatic access to your analytics data.</p>
+
+        <!-- Create New Key -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h6 class="mb-0">Create New API Key</h6>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Key Name</label>
+                <input type="text" class="form-control" id="new-key-name" placeholder="e.g., Production App">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Permissions</label>
+                <select class="form-select" id="new-key-permissions">
+                  <option value="read">Read Only</option>
+                  <option value="read,write">Read & Write</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-primary mt-3" onclick="createApiKey()">
+              <i class="bi bi-plus-lg me-1"></i>Generate API Key
+            </button>
+          </div>
+        </div>
+
+        <!-- New Key Display (hidden by default) -->
+        <div class="alert alert-success d-none" id="new-key-display">
+          <h6 class="alert-heading"><i class="bi bi-check-circle me-2"></i>API Key Created!</h6>
+          <p class="mb-2">Copy this key now. You won't be able to see it again.</p>
+          <div class="input-group mb-2">
+            <input type="text" class="form-control font-monospace" id="new-key-value" readonly>
+            <button class="btn btn-outline-secondary" onclick="copyNewApiKey()">
+              <i class="bi bi-clipboard"></i>
+            </button>
+          </div>
+          <small class="text-muted">Make sure to store this key securely.</small>
+        </div>
+
+        <!-- Existing Keys -->
+        <h6 class="text-muted mb-3">Your API Keys</h6>
+        <div id="api-keys-loading" class="text-center py-4">
+          <div class="spinner-border spinner-border-sm text-primary"></div>
+          <span class="ms-2">Loading keys...</span>
+        </div>
+
+        <div id="api-keys-list" class="d-none">
+          <!-- Keys populated by JS -->
+        </div>
+
+        <div id="api-keys-empty" class="d-none text-center py-4 text-muted">
+          <i class="bi bi-key" style="font-size: 2rem;"></i>
+          <p class="mt-2">No API keys yet</p>
+        </div>
+
+        <!-- API Documentation -->
+        <div class="card mt-4">
+          <div class="card-header">
+            <h6 class="mb-0"><i class="bi bi-book me-2"></i>Quick Start</h6>
+          </div>
+          <div class="card-body">
+            <p class="small text-muted mb-2">Use your API key in the Authorization header:</p>
+            <pre class="bg-light p-2 rounded small mb-2"><code>curl -H "Authorization: Bearer YOUR_API_KEY" \
+  https://ztas.io/api/stats?siteId=YOUR_SITE_ID&period=7d</code></pre>
+            <p class="small text-muted mb-0">
+              <a href="/docs/api/" target="_blank">View full API documentation</a>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>

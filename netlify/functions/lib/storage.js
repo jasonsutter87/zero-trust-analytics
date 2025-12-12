@@ -11,7 +11,8 @@ const STORES = {
   REALTIME: 'realtime',
   PASSWORD_RESET_TOKENS: 'password_reset_tokens',
   PUBLIC_SHARES: 'public_shares',
-  SESSIONS: 'sessions'
+  SESSIONS: 'sessions',
+  API_KEYS: 'api_keys'
 };
 
 // Get a store instance
@@ -897,4 +898,136 @@ function parseUserAgent(ua) {
   else if (/iphone|ipad/i.test(ua)) os = 'iOS';
 
   return { type, browser, os };
+}
+
+// === API KEY MANAGEMENT ===
+
+export async function createApiKey(userId, name, permissions = ['read']) {
+  const apiKeys = store(STORES.API_KEYS);
+
+  // Generate secure API key (format: zta_live_xxx or zta_test_xxx)
+  const keyId = 'key_' + crypto.randomUUID().replace(/-/g, '').substring(0, 12);
+  const secretKey = 'zta_live_' + crypto.randomUUID().replace(/-/g, '');
+
+  // Hash the key for storage (we only store the hash, show full key once)
+  const keyHash = await hashApiKey(secretKey);
+
+  const apiKey = {
+    id: keyId,
+    userId,
+    name: name || 'Unnamed Key',
+    keyHash,
+    keyPrefix: secretKey.substring(0, 12) + '...', // First 12 chars for identification
+    permissions, // ['read', 'write', 'admin']
+    createdAt: new Date().toISOString(),
+    lastUsedAt: null,
+    isActive: true
+  };
+
+  // Store the key
+  await apiKeys.setJSON(keyId, apiKey);
+
+  // Add to user's key list
+  const userKeysKey = `user_keys_${userId}`;
+  let userKeys = await apiKeys.get(userKeysKey, { type: 'json' }) || [];
+  userKeys.push(keyId);
+  await apiKeys.setJSON(userKeysKey, userKeys);
+
+  // Return full key (only time it's visible)
+  return {
+    ...apiKey,
+    key: secretKey
+  };
+}
+
+export async function getApiKey(keyId) {
+  const apiKeys = store(STORES.API_KEYS);
+  return await apiKeys.get(keyId, { type: 'json' });
+}
+
+export async function getUserApiKeys(userId) {
+  const apiKeys = store(STORES.API_KEYS);
+  const userKeysKey = `user_keys_${userId}`;
+  const keyIds = await apiKeys.get(userKeysKey, { type: 'json' }) || [];
+
+  const result = [];
+  for (const id of keyIds) {
+    const key = await apiKeys.get(id, { type: 'json' });
+    if (key && key.isActive) {
+      // Don't include the hash in the response
+      const { keyHash, ...safeKey } = key;
+      result.push(safeKey);
+    }
+  }
+
+  // Sort by created date (newest first)
+  result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  return result;
+}
+
+export async function validateApiKey(secretKey) {
+  if (!secretKey || !secretKey.startsWith('zta_')) {
+    return null;
+  }
+
+  const apiKeys = store(STORES.API_KEYS);
+  const keyHash = await hashApiKey(secretKey);
+
+  // Look up by hash (need to scan - in production use a hash index)
+  const { blobs } = await apiKeys.list();
+
+  for (const blob of blobs) {
+    if (blob.key.startsWith('key_')) {
+      const apiKey = await apiKeys.get(blob.key, { type: 'json' });
+      if (apiKey && apiKey.isActive && apiKey.keyHash === keyHash) {
+        // Update last used time
+        apiKey.lastUsedAt = new Date().toISOString();
+        await apiKeys.setJSON(apiKey.id, apiKey);
+
+        return apiKey;
+      }
+    }
+  }
+
+  return null;
+}
+
+export async function revokeApiKey(keyId, userId) {
+  const apiKeys = store(STORES.API_KEYS);
+  const apiKey = await apiKeys.get(keyId, { type: 'json' });
+
+  if (!apiKey || apiKey.userId !== userId) {
+    return false;
+  }
+
+  apiKey.isActive = false;
+  apiKey.revokedAt = new Date().toISOString();
+  await apiKeys.setJSON(keyId, apiKey);
+
+  return true;
+}
+
+export async function updateApiKeyName(keyId, userId, newName) {
+  const apiKeys = store(STORES.API_KEYS);
+  const apiKey = await apiKeys.get(keyId, { type: 'json' });
+
+  if (!apiKey || apiKey.userId !== userId || !apiKey.isActive) {
+    return null;
+  }
+
+  apiKey.name = newName;
+  await apiKeys.setJSON(keyId, apiKey);
+
+  const { keyHash, ...safeKey } = apiKey;
+  return safeKey;
+}
+
+// Simple hash function for API keys
+async function hashApiKey(key) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(key);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
