@@ -60,6 +60,9 @@
         <button class="btn btn-outline-secondary btn-sm" onclick="openTeamsModal()" aria-label="Manage team">
           <i class="fas fa-users me-1" aria-hidden="true"></i>Team
         </button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="openGoalsModal()" aria-label="Track goals">
+          <i class="fas fa-bullseye me-1" aria-hidden="true"></i>Goals
+        </button>
         <button class="btn btn-outline-secondary" onclick="openBillingPortal()" aria-label="Open billing portal">
           <i class="fas fa-credit-card me-1" aria-hidden="true"></i>Billing
         </button>
@@ -824,6 +827,104 @@ ZTA.track('download', { file: 'report.pdf' });</code></pre>
               <i class="bi bi-box-arrow-left me-1"></i>Leave Team
             </button>
           </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Goals Modal -->
+<div class="modal fade" id="goalsModal" tabindex="-1" aria-labelledby="goalsModalTitle">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="goalsModalTitle">
+          <i class="bi bi-bullseye me-2"></i>Goal Tracking
+        </h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted mb-3">Set targets for your key metrics and track progress over time.</p>
+
+        <!-- No Site Selected Warning -->
+        <div id="goals-no-site" class="alert alert-info d-none">
+          <i class="bi bi-info-circle me-2"></i>Please select a site first to manage goals.
+        </div>
+
+        <!-- Create New Goal -->
+        <div class="card mb-4" id="goal-create-section">
+          <div class="card-header">
+            <h6 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Create New Goal</h6>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Goal Name</label>
+                <input type="text" class="form-control" id="new-goal-name" placeholder="e.g., 10K Monthly Visitors">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Metric</label>
+                <select class="form-select" id="new-goal-metric">
+                  <option value="pageviews">Pageviews</option>
+                  <option value="visitors">Unique Visitors</option>
+                  <option value="sessions">Sessions</option>
+                  <option value="events">Custom Events</option>
+                  <option value="bounce_rate">Bounce Rate (%)</option>
+                  <option value="session_duration">Avg Session Duration (s)</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Target</label>
+                <input type="number" class="form-control" id="new-goal-target" placeholder="10000" min="1">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Period</label>
+                <select class="form-select" id="new-goal-period">
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly" selected>Monthly</option>
+                  <option value="quarterly">Quarterly</option>
+                  <option value="yearly">Yearly</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Comparison</label>
+                <select class="form-select" id="new-goal-comparison">
+                  <option value="gte">At Least (>=)</option>
+                  <option value="lte">At Most (<=)</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="new-goal-notify" checked>
+                  <label class="form-check-label" for="new-goal-notify">Notify me when goal is reached</label>
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-primary mt-3" onclick="createGoal()">
+              <i class="bi bi-plus-lg me-1"></i>Create Goal
+            </button>
+          </div>
+        </div>
+
+        <!-- Active Goals -->
+        <h6 class="text-muted mb-3"><i class="bi bi-bar-chart me-2"></i>Your Goals</h6>
+        <div id="goals-loading" class="text-center py-4">
+          <div class="spinner-border spinner-border-sm text-primary"></div>
+          <span class="ms-2">Loading goals...</span>
+        </div>
+
+        <div id="goals-list" class="d-none">
+          <!-- Goals populated by JS -->
+        </div>
+
+        <div id="goals-empty" class="d-none text-center py-4 text-muted">
+          <i class="bi bi-bullseye" style="font-size: 2rem;"></i>
+          <p class="mt-2">No goals set yet</p>
+          <p class="small">Create your first goal above to start tracking progress</p>
         </div>
       </div>
       <div class="modal-footer">

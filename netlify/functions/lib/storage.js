@@ -17,7 +17,8 @@ const STORES = {
   WEBHOOKS: 'webhooks',
   ALERTS: 'alerts',
   ANNOTATIONS: 'annotations',
-  TEAMS: 'teams'
+  TEAMS: 'teams',
+  GOALS: 'goals'
 };
 
 // Get a store instance
@@ -1972,4 +1973,190 @@ export async function canUserAccessSite(userId, siteId) {
   }
 
   return { canAccess: false };
+}
+
+// === GOAL TRACKING ===
+
+export const GoalMetrics = {
+  PAGEVIEWS: 'pageviews',
+  VISITORS: 'visitors',
+  SESSIONS: 'sessions',
+  EVENTS: 'events',
+  BOUNCE_RATE: 'bounce_rate',
+  SESSION_DURATION: 'session_duration'
+};
+
+export const GoalPeriods = {
+  DAILY: 'daily',
+  WEEKLY: 'weekly',
+  MONTHLY: 'monthly',
+  QUARTERLY: 'quarterly',
+  YEARLY: 'yearly'
+};
+
+export async function createGoal(siteId, userId, config) {
+  const goals = store(STORES.GOALS);
+
+  const goalId = 'goal_' + crypto.randomUUID().replace(/-/g, '').substring(0, 12);
+
+  const goal = {
+    id: goalId,
+    siteId,
+    userId,
+    name: config.name || 'New Goal',
+    metric: config.metric || GoalMetrics.PAGEVIEWS,
+    target: parseInt(config.target) || 1000,
+    period: config.period || GoalPeriods.MONTHLY,
+    comparison: config.comparison || 'gte', // gte = greater than or equal, lte = less than or equal
+    notifyOnComplete: config.notifyOnComplete !== false,
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    completedAt: null,
+    currentValue: 0,
+    lastUpdatedAt: null
+  };
+
+  await goals.setJSON(goalId, goal);
+
+  // Add to site's goal list
+  const siteGoalsKey = `site_goals_${siteId}`;
+  let siteGoals = await goals.get(siteGoalsKey, { type: 'json' }) || [];
+  siteGoals.push(goalId);
+  await goals.setJSON(siteGoalsKey, siteGoals);
+
+  return goal;
+}
+
+export async function getGoal(goalId) {
+  const goals = store(STORES.GOALS);
+  return await goals.get(goalId, { type: 'json' });
+}
+
+export async function getSiteGoals(siteId) {
+  const goals = store(STORES.GOALS);
+  const siteGoalsKey = `site_goals_${siteId}`;
+  const goalIds = await goals.get(siteGoalsKey, { type: 'json' }) || [];
+
+  const result = [];
+  for (const id of goalIds) {
+    const goal = await goals.get(id, { type: 'json' });
+    if (goal && goal.isActive) {
+      result.push(goal);
+    }
+  }
+
+  // Sort by created date (newest first)
+  result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  return result;
+}
+
+export async function updateGoal(goalId, userId, updates) {
+  const goals = store(STORES.GOALS);
+  const goal = await goals.get(goalId, { type: 'json' });
+
+  if (!goal || goal.userId !== userId) {
+    return null;
+  }
+
+  const allowedUpdates = ['name', 'target', 'period', 'comparison', 'notifyOnComplete', 'isActive'];
+  for (const key of allowedUpdates) {
+    if (updates[key] !== undefined) {
+      goal[key] = updates[key];
+    }
+  }
+
+  await goals.setJSON(goalId, goal);
+  return goal;
+}
+
+export async function deleteGoal(goalId, userId) {
+  const goals = store(STORES.GOALS);
+  const goal = await goals.get(goalId, { type: 'json' });
+
+  if (!goal || goal.userId !== userId) {
+    return false;
+  }
+
+  goal.isActive = false;
+  goal.deletedAt = new Date().toISOString();
+  await goals.setJSON(goalId, goal);
+
+  return true;
+}
+
+// Update goal progress based on current stats
+export async function updateGoalProgress(goalId, currentValue) {
+  const goals = store(STORES.GOALS);
+  const goal = await goals.get(goalId, { type: 'json' });
+
+  if (!goal || !goal.isActive) return null;
+
+  goal.currentValue = currentValue;
+  goal.lastUpdatedAt = new Date().toISOString();
+
+  // Check if goal is completed
+  const isComplete = goal.comparison === 'gte'
+    ? currentValue >= goal.target
+    : currentValue <= goal.target;
+
+  if (isComplete && !goal.completedAt) {
+    goal.completedAt = new Date().toISOString();
+  }
+
+  await goals.setJSON(goalId, goal);
+  return goal;
+}
+
+// Calculate current value for a goal metric
+export function calculateGoalValue(stats, metric) {
+  switch (metric) {
+    case GoalMetrics.PAGEVIEWS:
+      return stats.pageviews || 0;
+    case GoalMetrics.VISITORS:
+      return stats.uniqueVisitors || 0;
+    case GoalMetrics.SESSIONS:
+      return stats.uniqueSessions || 0;
+    case GoalMetrics.EVENTS:
+      return stats.totalEvents || 0;
+    case GoalMetrics.BOUNCE_RATE:
+      return stats.bounceRate || 0;
+    case GoalMetrics.SESSION_DURATION:
+      return stats.avgSessionDuration || 0;
+    default:
+      return 0;
+  }
+}
+
+// Get date range for goal period
+export function getGoalDateRange(period) {
+  const now = new Date();
+  let startDate;
+
+  switch (period) {
+    case GoalPeriods.DAILY:
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      break;
+    case GoalPeriods.WEEKLY:
+      const dayOfWeek = now.getDay();
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek);
+      break;
+    case GoalPeriods.MONTHLY:
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      break;
+    case GoalPeriods.QUARTERLY:
+      const quarter = Math.floor(now.getMonth() / 3);
+      startDate = new Date(now.getFullYear(), quarter * 3, 1);
+      break;
+    case GoalPeriods.YEARLY:
+      startDate = new Date(now.getFullYear(), 0, 1);
+      break;
+    default:
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  }
+
+  return {
+    startDate: startDate.toISOString().split('T')[0],
+    endDate: now.toISOString().split('T')[0]
+  };
 }
