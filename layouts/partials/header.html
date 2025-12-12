@@ -16,7 +16,21 @@
         <span class="navbar-toggler-icon" aria-hidden="true"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto" role="menubar">
+        <ul class="navbar-nav ms-auto align-items-center" role="menubar">
+          <!-- Theme Toggle -->
+          <li class="nav-item me-2" role="none">
+            <button
+              type="button"
+              class="btn btn-link nav-link p-1"
+              id="theme-toggle"
+              onclick="toggleTheme()"
+              aria-label="Toggle dark mode"
+              title="Toggle dark mode"
+            >
+              <i class="bi bi-moon-fill" id="theme-icon-dark"></i>
+              <i class="bi bi-sun-fill d-none" id="theme-icon-light"></i>
+            </button>
+          </li>
           <li class="nav-item" role="none">
             <a class="nav-link" href="/#features" role="menuitem">Features</a>
           </li>

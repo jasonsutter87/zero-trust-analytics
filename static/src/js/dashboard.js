@@ -19,7 +19,19 @@ document.addEventListener('DOMContentLoaded', function() {
   checkUserStatus();
   loadSites();
   initDatePickers();
+  initTooltips();
 });
+
+// Initialize Bootstrap tooltips
+function initTooltips() {
+  const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+  tooltipTriggerList.forEach(el => {
+    new bootstrap.Tooltip(el, {
+      trigger: 'hover focus',
+      delay: { show: 300, hide: 100 }
+    });
+  });
+}
 
 // Check user's subscription/trial status
 async function checkUserStatus() {
@@ -109,10 +121,25 @@ async function loadSites() {
     } else {
       emptyState.style.display = 'block';
       statsContent.style.display = 'none';
+
+      // Show onboarding wizard for new users
+      const hasSeenOnboarding = localStorage.getItem('zta_onboarding_seen');
+      if (!hasSeenOnboarding) {
+        setTimeout(() => showOnboardingWizard(), 500);
+        localStorage.setItem('zta_onboarding_seen', 'true');
+      }
     }
   } catch (err) {
     console.error('Failed to load sites:', err);
   }
+}
+
+// Show/hide loading skeleton
+function showLoading(show) {
+  const skeleton = document.getElementById('loading-skeleton');
+  const content = document.getElementById('stats-content');
+  if (skeleton) skeleton.style.display = show ? 'block' : 'none';
+  if (content) content.style.display = show ? 'none' : 'block';
 }
 
 // Load stats for selected site
@@ -124,12 +151,14 @@ async function loadStats() {
 
   if (!currentSiteId) {
     document.getElementById('stats-content').style.display = 'none';
+    document.getElementById('loading-skeleton').style.display = 'none';
     if (settingsBtn) settingsBtn.style.display = 'none';
     stopRealtimeUpdates();
     return;
   }
 
-  document.getElementById('stats-content').style.display = 'block';
+  // Show skeleton while loading
+  showLoading(true);
   if (settingsBtn) settingsBtn.style.display = 'inline-block';
   document.getElementById('current-site-domain').textContent = selector.options[selector.selectedIndex].text;
 
@@ -157,10 +186,12 @@ async function loadStats() {
     }
 
     updateDashboard(data);
+    showLoading(false);
     startRealtimeUpdates();
 
   } catch (err) {
     console.error('Failed to load stats:', err);
+    showLoading(false);
   }
 }
 
@@ -913,4 +944,255 @@ function checkCheckoutStatus() {
     alert('Checkout was canceled. You can try again when ready.');
     window.history.replaceState({}, document.title, '/dashboard/');
   }
+}
+
+// === ONBOARDING WIZARD ===
+
+let onboardingStep = 1;
+let onboardingSiteId = null;
+let verificationInterval = null;
+
+// Show onboarding wizard for new users
+function showOnboardingWizard() {
+  onboardingStep = 1;
+  onboardingSiteId = null;
+
+  // Reset UI state
+  document.getElementById('onboarding-domain').value = '';
+  document.getElementById('onboarding-error').classList.add('d-none');
+  document.getElementById('onboarding-back').style.display = 'none';
+  document.getElementById('onboarding-next').classList.remove('d-none');
+  document.getElementById('onboarding-finish').classList.add('d-none');
+
+  // Reset steps display
+  for (let i = 1; i <= 3; i++) {
+    document.getElementById(`onboarding-step-${i}`).classList.add('d-none');
+    document.querySelector(`[data-step="${i}"]`).classList.remove('active', 'completed');
+  }
+  document.getElementById('onboarding-step-1').classList.remove('d-none');
+  document.querySelector('[data-step="1"]').classList.add('active');
+
+  // Show modal
+  const modal = new bootstrap.Modal(document.getElementById('onboardingModal'));
+  modal.show();
+}
+
+// Navigate to next step
+async function onboardingNext() {
+  const errorEl = document.getElementById('onboarding-error');
+  errorEl.classList.add('d-none');
+
+  if (onboardingStep === 1) {
+    // Step 1 → 2: Create site
+    const domain = document.getElementById('onboarding-domain').value.trim();
+
+    if (!domain) {
+      errorEl.textContent = 'Please enter your website domain';
+      errorEl.classList.remove('d-none');
+      return;
+    }
+
+    // Validate domain format
+    const domainPattern = /^[a-zA-Z0-9][a-zA-Z0-9-_.]*\.[a-zA-Z]{2,}$/;
+    if (!domainPattern.test(domain)) {
+      errorEl.textContent = 'Please enter a valid domain (e.g., example.com)';
+      errorEl.classList.remove('d-none');
+      return;
+    }
+
+    // Disable button while creating
+    const nextBtn = document.getElementById('onboarding-next');
+    nextBtn.disabled = true;
+    nextBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
+
+    try {
+      const data = await ZTA.api.apiPost('/sites/create', { domain });
+      onboardingSiteId = data.site.id;
+
+      // Update embed code
+      const embedCode = `<script src="https://ztas.io/js/analytics.js" data-site-id="${onboardingSiteId}"></script>`;
+      document.getElementById('onboarding-embed-code').textContent = embedCode;
+
+      // Move to step 2
+      goToOnboardingStep(2);
+
+    } catch (err) {
+      errorEl.textContent = err.message || 'Failed to create site';
+      errorEl.classList.remove('d-none');
+    } finally {
+      nextBtn.disabled = false;
+      nextBtn.innerHTML = 'Continue <i class="bi bi-arrow-right ms-1"></i>';
+    }
+
+  } else if (onboardingStep === 2) {
+    // Step 2 → 3: Start verification
+    goToOnboardingStep(3);
+    startVerification();
+  }
+}
+
+// Navigate to previous step
+function onboardingBack() {
+  if (onboardingStep > 1) {
+    goToOnboardingStep(onboardingStep - 1);
+  }
+}
+
+// Go to specific onboarding step
+function goToOnboardingStep(step) {
+  // Hide current step
+  document.getElementById(`onboarding-step-${onboardingStep}`).classList.add('d-none');
+  document.querySelector(`[data-step="${onboardingStep}"]`).classList.remove('active');
+  document.querySelector(`[data-step="${onboardingStep}"]`).classList.add('completed');
+
+  // Show new step
+  onboardingStep = step;
+  document.getElementById(`onboarding-step-${step}`).classList.remove('d-none');
+  document.querySelector(`[data-step="${step}"]`).classList.add('active');
+
+  // Update buttons
+  document.getElementById('onboarding-back').style.display = step > 1 ? 'inline-block' : 'none';
+
+  if (step === 3) {
+    document.getElementById('onboarding-next').classList.add('d-none');
+  } else {
+    document.getElementById('onboarding-next').classList.remove('d-none');
+  }
+}
+
+// Copy embed code from onboarding
+function copyOnboardingCode() {
+  const code = document.getElementById('onboarding-embed-code').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = event.target.closest('button');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check me-1"></i>Copied!';
+    btn.classList.remove('btn-outline-primary');
+    btn.classList.add('btn-success');
+
+    setTimeout(() => {
+      btn.innerHTML = originalText;
+      btn.classList.remove('btn-success');
+      btn.classList.add('btn-outline-primary');
+    }, 2000);
+  });
+}
+
+// Start verification polling
+function startVerification() {
+  const spinner = document.getElementById('verification-spinner');
+  const success = document.getElementById('verification-success');
+
+  spinner.classList.remove('d-none');
+  success.classList.add('d-none');
+
+  let attempts = 0;
+  const maxAttempts = 60; // 5 minutes (every 5 seconds)
+
+  verificationInterval = setInterval(async () => {
+    attempts++;
+
+    if (attempts > maxAttempts) {
+      clearInterval(verificationInterval);
+      spinner.innerHTML = `
+        <i class="bi bi-clock text-warning" style="font-size: 2.5rem;"></i>
+        <p class="mt-3 text-muted">Taking longer than expected?</p>
+        <p class="small text-muted">Make sure the script is installed and visit your site.</p>
+        <button class="btn btn-primary mt-2" onclick="startVerification()">
+          <i class="bi bi-arrow-repeat me-1"></i>Check Again
+        </button>
+      `;
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/stats?siteId=${onboardingSiteId}&period=24h`, {
+        headers: getAuthHeaders()
+      });
+
+      const data = await res.json();
+
+      // Check if we have any pageviews
+      if (data.pageviews && data.pageviews > 0) {
+        clearInterval(verificationInterval);
+        onVerificationSuccess();
+      }
+    } catch (err) {
+      console.error('Verification check failed:', err);
+    }
+
+  }, 5000); // Check every 5 seconds
+}
+
+// Handle successful verification
+function onVerificationSuccess() {
+  const spinner = document.getElementById('verification-spinner');
+  const success = document.getElementById('verification-success');
+
+  spinner.classList.add('d-none');
+  success.classList.remove('d-none');
+
+  // Show finish button
+  document.getElementById('onboarding-finish').classList.remove('d-none');
+  document.getElementById('onboarding-back').style.display = 'none';
+
+  // Celebration confetti effect
+  createConfetti();
+}
+
+// Simple confetti effect
+function createConfetti() {
+  const colors = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1'];
+  const confettiCount = 50;
+
+  for (let i = 0; i < confettiCount; i++) {
+    const confetti = document.createElement('div');
+    confetti.style.cssText = `
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      background: ${colors[Math.floor(Math.random() * colors.length)]};
+      left: ${Math.random() * 100}vw;
+      top: -10px;
+      border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
+      pointer-events: none;
+      z-index: 9999;
+      animation: confetti-fall ${2 + Math.random() * 2}s linear forwards;
+    `;
+    document.body.appendChild(confetti);
+
+    setTimeout(() => confetti.remove(), 4000);
+  }
+
+  // Add keyframe animation if not exists
+  if (!document.getElementById('confetti-style')) {
+    const style = document.createElement('style');
+    style.id = 'confetti-style';
+    style.textContent = `
+      @keyframes confetti-fall {
+        to {
+          transform: translateY(100vh) rotate(720deg);
+          opacity: 0;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
+// Finish onboarding
+function finishOnboarding() {
+  // Stop any running verification
+  if (verificationInterval) {
+    clearInterval(verificationInterval);
+    verificationInterval = null;
+  }
+
+  // Reload sites and select the new one
+  loadSites().then(() => {
+    if (onboardingSiteId) {
+      document.getElementById('site-selector').value = onboardingSiteId;
+      loadStats();
+    }
+  });
 }

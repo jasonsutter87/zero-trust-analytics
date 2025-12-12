@@ -85,6 +85,82 @@ function updateAuthUI() {
   }
 }
 
+// === THEME MANAGEMENT ===
+
+const THEME_KEY = 'zta_theme';
+
+/**
+ * Get current theme (light or dark)
+ */
+function getTheme() {
+  // Check localStorage first
+  const stored = localStorage.getItem(THEME_KEY);
+  if (stored) return stored;
+
+  // Check system preference
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    return 'dark';
+  }
+
+  return 'light';
+}
+
+/**
+ * Set theme and update UI
+ */
+function setTheme(theme) {
+  localStorage.setItem(THEME_KEY, theme);
+  applyTheme(theme);
+}
+
+/**
+ * Apply theme to document
+ */
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+
+  // Update toggle button icons
+  const darkIcon = document.getElementById('theme-icon-dark');
+  const lightIcon = document.getElementById('theme-icon-light');
+
+  if (darkIcon && lightIcon) {
+    if (theme === 'dark') {
+      darkIcon.classList.add('d-none');
+      lightIcon.classList.remove('d-none');
+    } else {
+      darkIcon.classList.remove('d-none');
+      lightIcon.classList.add('d-none');
+    }
+  }
+}
+
+/**
+ * Toggle between light and dark theme
+ */
+function toggleTheme() {
+  const current = getTheme();
+  const next = current === 'dark' ? 'light' : 'dark';
+  setTheme(next);
+}
+
+/**
+ * Initialize theme on page load
+ */
+function initTheme() {
+  const theme = getTheme();
+  applyTheme(theme);
+
+  // Listen for system theme changes
+  if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      // Only auto-switch if user hasn't manually set a preference
+      if (!localStorage.getItem(THEME_KEY)) {
+        applyTheme(e.matches ? 'dark' : 'light');
+      }
+    });
+  }
+}
+
 // Export for module usage or attach to window
 if (typeof window !== 'undefined') {
   window.ZTA = window.ZTA || {};
@@ -100,6 +176,13 @@ if (typeof window !== 'undefined') {
     updateAuthUI
   };
 
+  window.ZTA.theme = {
+    getTheme,
+    setTheme,
+    toggleTheme,
+    initTheme
+  };
+
   // Also expose commonly used functions globally for backward compatibility
   window.getAuthHeaders = getAuthHeaders;
   window.isLoggedIn = isLoggedIn;
@@ -107,4 +190,8 @@ if (typeof window !== 'undefined') {
   window.requireAuth = requireAuth;
   window.updateAuthUI = updateAuthUI;
   window.clearAuth = clearAuth;
+  window.toggleTheme = toggleTheme;
+
+  // Initialize theme immediately (before DOMContentLoaded to prevent flash)
+  initTheme();
 }

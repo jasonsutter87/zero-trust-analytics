@@ -90,6 +90,27 @@
       </button>
     </div>
 
+    <!-- Loading Skeleton (shown while loading) -->
+    <div id="loading-skeleton" style="display: none;">
+      <div class="mb-4">
+        <div class="skeleton" style="width: 200px; height: 40px; border-radius: 20px;"></div>
+      </div>
+      <div class="stats-grid mb-4">
+        <div class="stat-card"><div class="skeleton skeleton-stat"></div><div class="skeleton skeleton-text" style="width: 60%;"></div></div>
+        <div class="stat-card"><div class="skeleton skeleton-stat"></div><div class="skeleton skeleton-text" style="width: 60%;"></div></div>
+        <div class="stat-card"><div class="skeleton skeleton-stat"></div><div class="skeleton skeleton-text" style="width: 60%;"></div></div>
+        <div class="stat-card"><div class="skeleton skeleton-stat"></div><div class="skeleton skeleton-text" style="width: 60%;"></div></div>
+      </div>
+      <div class="row mb-4">
+        <div class="col-lg-8 mb-4"><div class="card"><div class="card-header"><div class="skeleton skeleton-text" style="width: 40%;"></div></div><div class="card-body"><div class="skeleton skeleton-chart"></div></div></div></div>
+        <div class="col-lg-4"><div class="card"><div class="card-header"><div class="skeleton skeleton-text" style="width: 50%;"></div></div><div class="card-body"><div class="skeleton skeleton-chart"></div></div></div></div>
+      </div>
+      <div class="row">
+        <div class="col-lg-6 mb-4"><div class="data-table"><div class="p-3 bg-light"><div class="skeleton skeleton-text" style="width: 30%;"></div></div><div class="p-3"><div class="skeleton skeleton-row"></div><div class="skeleton skeleton-row"></div><div class="skeleton skeleton-row"></div></div></div></div>
+        <div class="col-lg-6 mb-4"><div class="data-table"><div class="p-3 bg-light"><div class="skeleton skeleton-text" style="width: 30%;"></div></div><div class="p-3"><div class="skeleton skeleton-row"></div><div class="skeleton skeleton-row"></div><div class="skeleton skeleton-row"></div></div></div></div>
+      </div>
+    </div>
+
     <!-- Stats Content (hidden until site selected) -->
     <div id="stats-content" style="display: none;">
 
@@ -106,24 +127,24 @@
 
       <!-- Primary Stats Grid -->
       <div class="stats-grid mb-4">
-        <div class="stat-card">
+        <div class="stat-card" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Number of distinct visitors (privacy-safe daily hash)">
           <div class="stat-value" id="unique-visitors">-</div>
-          <div class="stat-label">Unique Visitors</div>
+          <div class="stat-label">Unique Visitors <i class="fas fa-info-circle text-muted small" aria-hidden="true"></i></div>
           <div class="stat-comparison" id="unique-visitors-compare"></div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Total pages viewed across all visitors">
           <div class="stat-value" id="page-views">-</div>
-          <div class="stat-label">Page Views</div>
+          <div class="stat-label">Page Views <i class="fas fa-info-circle text-muted small" aria-hidden="true"></i></div>
           <div class="stat-comparison" id="page-views-compare"></div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" data-bs-toggle="tooltip" data-bs-placement="bottom" title="A session ends after 30 minutes of inactivity">
           <div class="stat-value" id="sessions">-</div>
-          <div class="stat-label">Sessions</div>
+          <div class="stat-label">Sessions <i class="fas fa-info-circle text-muted small" aria-hidden="true"></i></div>
           <div class="stat-comparison" id="sessions-compare"></div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Visitors who left after viewing only one page (lower is better)">
           <div class="stat-value" id="bounce-rate">-</div>
-          <div class="stat-label">Bounce Rate</div>
+          <div class="stat-label">Bounce Rate <i class="fas fa-info-circle text-muted small" aria-hidden="true"></i></div>
           <div class="stat-comparison" id="bounce-rate-compare"></div>
         </div>
       </div>
@@ -178,250 +199,293 @@
 
       <!-- Secondary Stats Grid -->
       <div class="stats-grid stats-grid-secondary mb-4">
-        <div class="stat-card stat-card-sm">
+        <div class="stat-card stat-card-sm" data-bs-toggle="tooltip" title="Average time visitors spend on your site per session">
           <div class="stat-value" id="avg-session-duration">-</div>
           <div class="stat-label">Avg. Session Duration</div>
         </div>
-        <div class="stat-card stat-card-sm">
+        <div class="stat-card stat-card-sm" data-bs-toggle="tooltip" title="Average number of pages viewed per session">
           <div class="stat-value" id="pages-per-session">-</div>
           <div class="stat-label">Pages / Session</div>
         </div>
-        <div class="stat-card stat-card-sm">
+        <div class="stat-card stat-card-sm" data-bs-toggle="tooltip" title="How far visitors scroll down your pages on average">
           <div class="stat-value" id="avg-scroll-depth">-</div>
           <div class="stat-label">Avg. Scroll Depth</div>
         </div>
-        <div class="stat-card stat-card-sm">
+        <div class="stat-card stat-card-sm" data-bs-toggle="tooltip" title="First-time visitors vs returning visitors (based on daily hash)">
           <div class="stat-value" id="new-vs-returning">-</div>
           <div class="stat-label">New / Returning</div>
         </div>
       </div>
 
-      <!-- Main Data Tables Row -->
-      <div class="row">
-        <!-- Top Pages -->
-        <div class="col-lg-6 mb-4">
-          <div class="data-table">
-            <h5 class="p-3 mb-0 bg-light d-flex justify-content-between align-items-center">
-              Top Pages
-              <span class="badge bg-secondary" id="pages-count">0</span>
-            </h5>
-            <table class="table table-sm">
-              <thead>
-                <tr>
-                  <th>Page</th>
-                  <th class="text-end">Views</th>
-                  <th class="text-end">Avg Time</th>
-                </tr>
-              </thead>
-              <tbody id="top-pages-table">
-                <tr><td colspan="3" class="text-center text-muted">No data yet</td></tr>
-              </tbody>
-            </table>
+      <!-- Tab Navigation -->
+      <ul class="nav nav-tabs mb-4" id="dashboardTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="pages-tab" data-bs-toggle="tab" data-bs-target="#pages-panel" type="button" role="tab" aria-controls="pages-panel" aria-selected="true">
+            <i class="fas fa-file-alt me-1 d-none d-sm-inline" aria-hidden="true"></i>Pages
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="sources-tab" data-bs-toggle="tab" data-bs-target="#sources-panel" type="button" role="tab" aria-controls="sources-panel" aria-selected="false">
+            <i class="fas fa-link me-1 d-none d-sm-inline" aria-hidden="true"></i>Sources
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="tech-tab" data-bs-toggle="tab" data-bs-target="#tech-panel" type="button" role="tab" aria-controls="tech-panel" aria-selected="false">
+            <i class="fas fa-laptop me-1 d-none d-sm-inline" aria-hidden="true"></i>Tech
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="geo-tab" data-bs-toggle="tab" data-bs-target="#geo-panel" type="button" role="tab" aria-controls="geo-panel" aria-selected="false">
+            <i class="fas fa-globe me-1 d-none d-sm-inline" aria-hidden="true"></i>Geo
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="events-tab" data-bs-toggle="tab" data-bs-target="#events-panel" type="button" role="tab" aria-controls="events-panel" aria-selected="false">
+            <i class="fas fa-bolt me-1 d-none d-sm-inline" aria-hidden="true"></i>Events
+          </button>
+        </li>
+      </ul>
+
+      <!-- Tab Content -->
+      <div class="tab-content" id="dashboardTabContent">
+        <!-- Pages Tab -->
+        <div class="tab-pane fade show active" id="pages-panel" role="tabpanel" aria-labelledby="pages-tab">
+          <div class="row">
+            <div class="col-lg-6 mb-4">
+              <div class="data-table">
+                <h5 class="p-3 mb-0 bg-light d-flex justify-content-between align-items-center">
+                  Top Pages
+                  <span class="badge bg-secondary" id="pages-count">0</span>
+                </h5>
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Page</th>
+                      <th class="text-end">Views</th>
+                      <th class="text-end">Avg Time</th>
+                    </tr>
+                  </thead>
+                  <tbody id="top-pages-table">
+                    <tr><td colspan="3" class="text-center text-muted">No data yet</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+              <div class="data-table">
+                <h5 class="p-3 mb-0 bg-light">Landing Pages</h5>
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Page</th>
+                      <th class="text-end">Entrances</th>
+                    </tr>
+                  </thead>
+                  <tbody id="landing-pages-table">
+                    <tr><td colspan="2" class="text-center text-muted">No data yet</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-lg-6 mb-4">
+              <div class="data-table">
+                <h5 class="p-3 mb-0 bg-light">Exit Pages</h5>
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Page</th>
+                      <th class="text-end">Exits</th>
+                    </tr>
+                  </thead>
+                  <tbody id="exit-pages-table">
+                    <tr><td colspan="2" class="text-center text-muted">No data yet</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Top Referrers -->
-        <div class="col-lg-6 mb-4">
-          <div class="data-table">
-            <h5 class="p-3 mb-0 bg-light d-flex justify-content-between align-items-center">
-              Top Referrers
-              <span class="badge bg-secondary" id="referrers-count">0</span>
-            </h5>
-            <table class="table table-sm">
-              <thead>
-                <tr>
-                  <th>Source</th>
-                  <th class="text-end">Visits</th>
-                </tr>
-              </thead>
-              <tbody id="top-referrers-table">
-                <tr><td colspan="2" class="text-center text-muted">No data yet</td></tr>
-              </tbody>
-            </table>
+        <!-- Sources Tab -->
+        <div class="tab-pane fade" id="sources-panel" role="tabpanel" aria-labelledby="sources-tab">
+          <div class="row">
+            <div class="col-lg-6 mb-4">
+              <div class="data-table">
+                <h5 class="p-3 mb-0 bg-light d-flex justify-content-between align-items-center">
+                  Top Referrers
+                  <span class="badge bg-secondary" id="referrers-count">0</span>
+                </h5>
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Source</th>
+                      <th class="text-end">Visits</th>
+                    </tr>
+                  </thead>
+                  <tbody id="top-referrers-table">
+                    <tr><td colspan="2" class="text-center text-muted">No data yet</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+              <div class="data-table">
+                <h5 class="p-3 mb-0 bg-light">Traffic Sources</h5>
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Source Type</th>
+                      <th class="text-end">Visits</th>
+                    </tr>
+                  </thead>
+                  <tbody id="traffic-sources-table">
+                    <tr><td colspan="2" class="text-center text-muted">No data yet</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-lg-6 mb-4">
+              <div class="data-table">
+                <h5 class="p-3 mb-0 bg-light">UTM Campaigns</h5>
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Campaign</th>
+                      <th class="text-end">Visits</th>
+                    </tr>
+                  </thead>
+                  <tbody id="campaigns-table">
+                    <tr><td colspan="2" class="text-center text-muted">No data yet</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Landing & Exit Pages Row -->
-      <div class="row">
-        <div class="col-lg-6 mb-4">
-          <div class="data-table">
-            <h5 class="p-3 mb-0 bg-light">Landing Pages</h5>
-            <table class="table table-sm">
-              <thead>
-                <tr>
-                  <th>Page</th>
-                  <th class="text-end">Entrances</th>
-                </tr>
-              </thead>
-              <tbody id="landing-pages-table">
-                <tr><td colspan="2" class="text-center text-muted">No data yet</td></tr>
-              </tbody>
-            </table>
+        <!-- Tech Tab -->
+        <div class="tab-pane fade" id="tech-panel" role="tabpanel" aria-labelledby="tech-tab">
+          <div class="row">
+            <div class="col-lg-4 mb-4">
+              <div class="data-table">
+                <h5 class="p-3 mb-0 bg-light">Devices</h5>
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Device</th>
+                      <th class="text-end">Visits</th>
+                    </tr>
+                  </thead>
+                  <tbody id="devices-table">
+                    <tr><td colspan="2" class="text-center text-muted">No data yet</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+              <div class="data-table">
+                <h5 class="p-3 mb-0 bg-light">Browsers</h5>
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Browser</th>
+                      <th class="text-end">Visits</th>
+                    </tr>
+                  </thead>
+                  <tbody id="browsers-table">
+                    <tr><td colspan="2" class="text-center text-muted">No data yet</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+              <div class="data-table">
+                <h5 class="p-3 mb-0 bg-light">Operating Systems</h5>
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>OS</th>
+                      <th class="text-end">Visits</th>
+                    </tr>
+                  </thead>
+                  <tbody id="os-table">
+                    <tr><td colspan="2" class="text-center text-muted">No data yet</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="col-lg-6 mb-4">
-          <div class="data-table">
-            <h5 class="p-3 mb-0 bg-light">Exit Pages</h5>
-            <table class="table table-sm">
-              <thead>
-                <tr>
-                  <th>Page</th>
-                  <th class="text-end">Exits</th>
-                </tr>
-              </thead>
-              <tbody id="exit-pages-table">
-                <tr><td colspan="2" class="text-center text-muted">No data yet</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
 
-      <!-- Traffic Sources & Devices Row -->
-      <div class="row">
-        <div class="col-lg-4 mb-4">
-          <div class="data-table">
-            <h5 class="p-3 mb-0 bg-light">Traffic Sources</h5>
-            <table class="table table-sm">
-              <thead>
-                <tr>
-                  <th>Source Type</th>
-                  <th class="text-end">Visits</th>
-                </tr>
-              </thead>
-              <tbody id="traffic-sources-table">
-                <tr><td colspan="2" class="text-center text-muted">No data yet</td></tr>
-              </tbody>
-            </table>
+        <!-- Geo Tab -->
+        <div class="tab-pane fade" id="geo-panel" role="tabpanel" aria-labelledby="geo-tab">
+          <div class="row">
+            <div class="col-lg-4 mb-4">
+              <div class="data-table">
+                <h5 class="p-3 mb-0 bg-light">Countries</h5>
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Country</th>
+                      <th class="text-end">Visitors</th>
+                    </tr>
+                  </thead>
+                  <tbody id="countries-table">
+                    <tr><td colspan="2" class="text-center text-muted">No data yet</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+              <div class="data-table">
+                <h5 class="p-3 mb-0 bg-light">Languages</h5>
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Language</th>
+                      <th class="text-end">Visits</th>
+                    </tr>
+                  </thead>
+                  <tbody id="languages-table">
+                    <tr><td colspan="2" class="text-center text-muted">No data yet</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="col-lg-4 mb-4">
-          <div class="data-table">
-            <h5 class="p-3 mb-0 bg-light">Devices</h5>
-            <table class="table table-sm">
-              <thead>
-                <tr>
-                  <th>Device</th>
-                  <th class="text-end">Visits</th>
-                </tr>
-              </thead>
-              <tbody id="devices-table">
-                <tr><td colspan="2" class="text-center text-muted">No data yet</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div class="col-lg-4 mb-4">
-          <div class="data-table">
-            <h5 class="p-3 mb-0 bg-light">Browsers</h5>
-            <table class="table table-sm">
-              <thead>
-                <tr>
-                  <th>Browser</th>
-                  <th class="text-end">Visits</th>
-                </tr>
-              </thead>
-              <tbody id="browsers-table">
-                <tr><td colspan="2" class="text-center text-muted">No data yet</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
 
-      <!-- OS & Countries Row -->
-      <div class="row">
-        <div class="col-lg-4 mb-4">
-          <div class="data-table">
-            <h5 class="p-3 mb-0 bg-light">Operating Systems</h5>
-            <table class="table table-sm">
-              <thead>
-                <tr>
-                  <th>OS</th>
-                  <th class="text-end">Visits</th>
-                </tr>
-              </thead>
-              <tbody id="os-table">
-                <tr><td colspan="2" class="text-center text-muted">No data yet</td></tr>
-              </tbody>
-            </table>
+        <!-- Events Tab -->
+        <div class="tab-pane fade" id="events-panel" role="tabpanel" aria-labelledby="events-tab">
+          <div class="row">
+            <div class="col-12 mb-4">
+              <div class="data-table">
+                <h5 class="p-3 mb-0 bg-light d-flex justify-content-between align-items-center">
+                  <span>Custom Events <small class="text-muted">(<span id="total-events">0</span> total)</small></span>
+                  <span class="badge bg-primary" id="events-value-total" style="display:none;">$0</span>
+                </h5>
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Event</th>
+                      <th>Details</th>
+                      <th class="text-end">Count</th>
+                      <th class="text-end">Value</th>
+                    </tr>
+                  </thead>
+                  <tbody id="events-table">
+                    <tr><td colspan="4" class="text-center text-muted">No data yet</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="col-lg-4 mb-4">
-          <div class="data-table">
-            <h5 class="p-3 mb-0 bg-light">Countries</h5>
-            <table class="table table-sm">
-              <thead>
-                <tr>
-                  <th>Country</th>
-                  <th class="text-end">Visitors</th>
-                </tr>
-              </thead>
-              <tbody id="countries-table">
-                <tr><td colspan="2" class="text-center text-muted">No data yet</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div class="col-lg-4 mb-4">
-          <div class="data-table">
-            <h5 class="p-3 mb-0 bg-light">Languages</h5>
-            <table class="table table-sm">
-              <thead>
-                <tr>
-                  <th>Language</th>
-                  <th class="text-end">Visits</th>
-                </tr>
-              </thead>
-              <tbody id="languages-table">
-                <tr><td colspan="2" class="text-center text-muted">No data yet</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Campaigns & Events Row -->
-      <div class="row">
-        <div class="col-lg-6 mb-4">
-          <div class="data-table">
-            <h5 class="p-3 mb-0 bg-light">UTM Campaigns</h5>
-            <table class="table table-sm">
-              <thead>
-                <tr>
-                  <th>Campaign</th>
-                  <th class="text-end">Visits</th>
-                </tr>
-              </thead>
-              <tbody id="campaigns-table">
-                <tr><td colspan="2" class="text-center text-muted">No data yet</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div class="col-lg-6 mb-4">
-          <div class="data-table">
-            <h5 class="p-3 mb-0 bg-light d-flex justify-content-between align-items-center">
-              <span>Events <small class="text-muted">(<span id="total-events">0</span> total)</small></span>
-              <span class="badge bg-primary" id="events-value-total" style="display:none;">$0</span>
-            </h5>
-            <table class="table table-sm">
-              <thead>
-                <tr>
-                  <th>Event</th>
-                  <th>Details</th>
-                  <th class="text-end">Count</th>
-                  <th class="text-end">Value</th>
-                </tr>
-              </thead>
-              <tbody id="events-table">
-                <tr><td colspan="4" class="text-center text-muted">No data yet</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+      </div><!-- End tab-content -->
 
       <!-- Embed Code -->
       <div class="card mb-4">
@@ -553,7 +617,161 @@ ZTA.track('download', { file: 'report.pdf' });</code></pre>
   </div>
 </div>
 
+<!-- Onboarding Wizard Modal -->
+<div class="modal fade" id="onboardingModal" tabindex="-1" aria-labelledby="onboardingModalTitle" data-bs-backdrop="static">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h2 class="modal-title h4" id="onboardingModalTitle">Welcome to Zero Trust Analytics!</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <!-- Progress Steps -->
+        <div class="d-flex justify-content-center mb-4">
+          <div class="onboarding-steps d-flex align-items-center">
+            <div class="step active" id="step-1-indicator">
+              <span class="step-number">1</span>
+              <span class="step-label d-none d-sm-inline">Add Site</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" id="step-2-indicator">
+              <span class="step-number">2</span>
+              <span class="step-label d-none d-sm-inline">Install</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" id="step-3-indicator">
+              <span class="step-number">3</span>
+              <span class="step-label d-none d-sm-inline">Verify</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 1: Add Site -->
+        <div class="onboarding-step" id="onboarding-step-1">
+          <div class="text-center mb-4">
+            <i class="fas fa-globe fa-3x text-primary mb-3"></i>
+            <h4>Add your first website</h4>
+            <p class="text-muted">Enter your website domain to start tracking privacy-friendly analytics.</p>
+          </div>
+          <div class="mx-auto" style="max-width: 400px;">
+            <div class="mb-3">
+              <label for="onboarding-domain" class="form-label">Website Domain</label>
+              <input type="text" class="form-control form-control-lg" id="onboarding-domain" placeholder="example.com">
+              <div class="form-text">Enter without https://</div>
+            </div>
+            <div class="alert alert-danger d-none" id="onboarding-error"></div>
+          </div>
+        </div>
+
+        <!-- Step 2: Install Script -->
+        <div class="onboarding-step d-none" id="onboarding-step-2">
+          <div class="text-center mb-4">
+            <i class="fas fa-code fa-3x text-primary mb-3"></i>
+            <h4>Install the tracking script</h4>
+            <p class="text-muted">Add this code to your website's <code>&lt;head&gt;</code> tag.</p>
+          </div>
+          <div class="mx-auto" style="max-width: 600px;">
+            <div class="position-relative">
+              <pre class="bg-dark text-light p-3 rounded" style="font-size: 0.85rem;"><code id="onboarding-embed-code">&lt;script src="https://ztas.io/js/analytics.js" data-site-id="YOUR_SITE_ID"&gt;&lt;/script&gt;</code></pre>
+              <button class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-2" onclick="copyOnboardingCode()">
+                <i class="fas fa-copy me-1"></i>Copy
+              </button>
+            </div>
+            <div class="alert alert-info mt-3">
+              <i class="fas fa-lightbulb me-2"></i>
+              <strong>Tip:</strong> Place this script right before the closing <code>&lt;/head&gt;</code> tag for best performance.
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Verify -->
+        <div class="onboarding-step d-none" id="onboarding-step-3">
+          <div class="text-center mb-4" id="verify-waiting">
+            <div class="spinner-border text-primary mb-3" role="status">
+              <span class="visually-hidden">Checking...</span>
+            </div>
+            <h4>Waiting for first pageview...</h4>
+            <p class="text-muted">Visit your website in another tab. We'll detect it automatically.</p>
+            <p class="small text-muted mt-3">
+              <i class="fas fa-clock me-1"></i>Checking every 5 seconds...
+              <span id="verify-attempts">(0 attempts)</span>
+            </p>
+          </div>
+          <div class="text-center mb-4 d-none" id="verify-success">
+            <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+            <h4 class="text-success">Success! We received your first pageview!</h4>
+            <p class="text-muted">Your analytics are now being tracked. Welcome aboard!</p>
+            <div class="confetti-container" id="confetti"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary" id="onboarding-back" onclick="onboardingBack()" style="display: none;">
+          <i class="fas fa-arrow-left me-1"></i>Back
+        </button>
+        <button type="button" class="btn btn-primary" id="onboarding-next" onclick="onboardingNext()">
+          Continue<i class="fas fa-arrow-right ms-1"></i>
+        </button>
+        <button type="button" class="btn btn-success d-none" id="onboarding-finish" data-bs-dismiss="modal" onclick="finishOnboarding()">
+          Go to Dashboard<i class="fas fa-arrow-right ms-1"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <style>
+/* Onboarding wizard styles */
+.onboarding-steps {
+  gap: 0.5rem;
+}
+.onboarding-steps .step {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6c757d;
+}
+.onboarding-steps .step.active {
+  color: #0d6efd;
+}
+.onboarding-steps .step.completed {
+  color: #198754;
+}
+.onboarding-steps .step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+.onboarding-steps .step.active .step-number {
+  background: #0d6efd;
+  color: white;
+}
+.onboarding-steps .step.completed .step-number {
+  background: #198754;
+  color: white;
+}
+.onboarding-steps .step-line {
+  width: 40px;
+  height: 2px;
+  background: #dee2e6;
+}
+@keyframes confetti-fall {
+  0% { transform: translateY(-100%) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+.confetti {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  top: 0;
+  animation: confetti-fall 3s ease-out forwards;
+}
+
 .pulse-dot {
   width: 8px;
   height: 8px;
@@ -636,33 +854,181 @@ ZTA.track('download', { file: 'report.pdf' });</code></pre>
   white-space: pre-wrap;
   word-break: break-all;
 }
-/* Mobile fixes */
-@media (max-width: 576px) {
+/* Loading skeleton */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+}
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.skeleton-text { height: 1rem; margin-bottom: 0.5rem; }
+.skeleton-title { height: 1.5rem; width: 60%; margin-bottom: 0.75rem; }
+.skeleton-stat { height: 2rem; width: 80%; }
+.skeleton-chart { height: 200px; width: 100%; }
+.skeleton-row { height: 2.5rem; margin-bottom: 0.25rem; }
+
+/* Tab navigation styles */
+#dashboardTabs {
+  border-bottom: 2px solid #dee2e6;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+#dashboardTabs .nav-link {
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  color: #6c757d;
+  white-space: nowrap;
+  padding: 0.75rem 1rem;
+}
+#dashboardTabs .nav-link:hover {
+  border-color: transparent;
+  color: #0d6efd;
+}
+#dashboardTabs .nav-link.active {
+  border-bottom-color: #0d6efd;
+  color: #0d6efd;
+  background: none;
+}
+
+/* Tablet fixes */
+@media (max-width: 768px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  .card-header h5 {
+    font-size: 1rem;
+  }
+  #dashboardTabs .nav-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Mobile fixes */
+@media (max-width: 576px) {
+  .dashboard-container {
+    padding-top: 0.5rem;
+  }
+  .dashboard-container h1 {
+    font-size: 1.5rem;
+  }
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
   }
   .stats-grid-secondary {
     grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  .stat-card {
+    padding: 0.75rem;
   }
   .stat-card .stat-value {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+  .stat-card .stat-label {
+    font-size: 0.65rem;
   }
   .stat-card-sm .stat-value {
-    font-size: 1rem;
+    font-size: 1.1rem;
   }
   .d-flex.gap-2 {
     flex-wrap: wrap;
   }
+  /* Touch-friendly period selector */
   .period-selector {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.25rem;
   }
   .period-selector .btn {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    min-height: 44px;
   }
-  .data-table .table td, .data-table .table th {
-    font-size: 0.7rem;
-    padding: 0.4rem;
+  /* Card-based tables on mobile */
+  .data-table {
+    margin-bottom: 1rem;
+  }
+  .data-table .table {
+    display: block;
+  }
+  .data-table .table thead {
+    display: none;
+  }
+  .data-table .table tbody {
+    display: block;
+  }
+  .data-table .table tr {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0.75rem;
+    border-bottom: 1px solid #dee2e6;
+    align-items: center;
+  }
+  .data-table .table td {
+    border: none;
+    padding: 0.25rem 0;
+    font-size: 0.85rem;
+  }
+  .data-table .table td:first-child {
+    flex: 1 1 70%;
+    font-weight: 500;
+    max-width: none;
+  }
+  .data-table .table td:last-child,
+  .data-table .table td.text-end {
+    flex: 0 0 auto;
+    text-align: right;
+    font-weight: 600;
+    color: #0d6efd;
+  }
+  /* Hide date pickers on mobile - use period buttons */
+  fieldset.d-flex {
+    display: none !important;
+  }
+  /* Larger touch targets */
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .btn-sm {
+    min-height: 38px;
+    padding: 0.5rem 0.75rem;
+  }
+  /* Site selector full width */
+  .site-selector {
+    width: 100%;
+  }
+  .site-selector .form-select {
+    flex: 1;
+  }
+  /* Real-time badge */
+  .bg-success.text-white {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem !important;
+  }
+  /* Charts responsive */
+  .card-body canvas {
+    max-height: 200px;
+  }
+  /* Export buttons stack */
+  .d-flex.gap-2.flex-wrap {
+    gap: 0.5rem !important;
+  }
+  .d-flex.gap-2.flex-wrap .btn {
+    flex: 1 1 calc(50% - 0.25rem);
+    font-size: 0.75rem;
   }
 }
 </style>
