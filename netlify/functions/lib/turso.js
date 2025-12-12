@@ -52,9 +52,22 @@ async function initSchema() {
   `);
 
   // Create indexes for common queries
+  // Primary query index: covers most dashboard queries (site + time range + event type)
   await turso.execute(`CREATE INDEX IF NOT EXISTS idx_pageviews_site_timestamp ON pageviews(site_id, timestamp)`);
   await turso.execute(`CREATE INDEX IF NOT EXISTS idx_pageviews_site_event ON pageviews(site_id, event_type)`);
   await turso.execute(`CREATE INDEX IF NOT EXISTS idx_pageviews_identity ON pageviews(identity_hash)`);
+
+  // Additional indexes for hot query paths
+  // Composite index for filtered aggregations (site + event type + timestamp range)
+  await turso.execute(`CREATE INDEX IF NOT EXISTS idx_pageviews_site_event_ts ON pageviews(site_id, event_type, timestamp)`);
+
+  // Session counting (unique sessions per site)
+  await turso.execute(`CREATE INDEX IF NOT EXISTS idx_pageviews_session ON pageviews(site_id, session_hash)`);
+
+  // Device/browser/country breakdown queries
+  await turso.execute(`CREATE INDEX IF NOT EXISTS idx_pageviews_device ON pageviews(site_id, context_device) WHERE event_type = 'pageview'`);
+  await turso.execute(`CREATE INDEX IF NOT EXISTS idx_pageviews_browser ON pageviews(site_id, context_browser) WHERE event_type = 'pageview'`);
+  await turso.execute(`CREATE INDEX IF NOT EXISTS idx_pageviews_country ON pageviews(site_id, context_country) WHERE event_type = 'pageview'`);
 }
 
 /**
