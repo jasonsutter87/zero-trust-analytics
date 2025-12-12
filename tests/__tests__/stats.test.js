@@ -44,8 +44,8 @@ jest.unstable_mockModule('jsonwebtoken', () => ({
   }
 }));
 
-// Mock tinybird
-jest.unstable_mockModule('../../netlify/functions/lib/tinybird.js', () => ({
+// Mock turso (replaced tinybird)
+jest.unstable_mockModule('../../netlify/functions/lib/turso.js', () => ({
   getStats: jest.fn(() => Promise.resolve({
     pageviews: 100,
     uniqueVisitors: 50,

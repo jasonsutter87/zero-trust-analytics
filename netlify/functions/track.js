@@ -1,6 +1,7 @@
 import { createZTRecord, validateNoPII } from './lib/zero-trust-core.js';
 import { ingestEvents } from './lib/turso.js';
 import { getSite } from './lib/storage.js';
+import { checkRateLimit, rateLimitResponse, hashIP } from './lib/rate-limit.js';
 
 // Basic bot detection - filters common bots/crawlers
 function isBot(userAgent) {
@@ -79,6 +80,15 @@ export default async function handler(req, context) {
       status: 405,
       headers: { 'Content-Type': 'application/json' }
     });
+  }
+
+  // Rate limiting: 1000 requests per minute per IP (generous for tracking)
+  const clientIP = context.ip || req.headers.get('x-forwarded-for') || 'unknown';
+  const rateLimitKey = hashIP(clientIP);
+  const rateLimit = checkRateLimit(rateLimitKey, { limit: 1000, windowMs: 60000 });
+
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit);
   }
 
   try {
