@@ -35,6 +35,13 @@ jest.unstable_mockModule('@netlify/blobs', () => {
   };
 });
 
+// Mock rate-limit to always allow requests
+jest.unstable_mockModule('../../netlify/functions/lib/rate-limit.js', () => ({
+  checkRateLimit: jest.fn(() => ({ allowed: true, remaining: 100, resetTime: Date.now() + 60000, retryAfter: 0 })),
+  rateLimitResponse: jest.fn(),
+  hashIP: jest.fn((ip) => `hashed_${ip}`)
+}));
+
 const { __clearAllStores, getStore } = await import('@netlify/blobs');
 
 describe('Auth Verify Reset Token Endpoint', () => {
@@ -65,6 +72,9 @@ describe('Auth Verify Reset Token Endpoint', () => {
 
       const req = {
         method: 'GET',
+        headers: {
+          get: (name) => null
+        },
         url: 'https://example.com/api/auth/verify-reset-token?token=valid_token_123'
       };
 
@@ -81,6 +91,9 @@ describe('Auth Verify Reset Token Endpoint', () => {
 
       const req = {
         method: 'GET',
+        headers: {
+          get: (name) => null
+        },
         url: 'https://example.com/api/auth/verify-reset-token?token=nonexistent_token'
       };
 
@@ -97,6 +110,9 @@ describe('Auth Verify Reset Token Endpoint', () => {
 
       const req = {
         method: 'GET',
+        headers: {
+          get: (name) => null
+        },
         url: 'https://example.com/api/auth/verify-reset-token?token=expired_token_456'
       };
 
@@ -113,6 +129,9 @@ describe('Auth Verify Reset Token Endpoint', () => {
 
       const req = {
         method: 'GET',
+        headers: {
+          get: (name) => null
+        },
         url: 'https://example.com/api/auth/verify-reset-token'
       };
 
@@ -127,7 +146,10 @@ describe('Auth Verify Reset Token Endpoint', () => {
       const { default: handler } = await import('../../netlify/functions/auth-verify-reset-token.js');
 
       const req = {
-        method: 'OPTIONS'
+        method: 'OPTIONS',
+        headers: {
+          get: (name) => null
+        }
       };
 
       const response = await handler(req, {});
@@ -141,6 +163,9 @@ describe('Auth Verify Reset Token Endpoint', () => {
 
       const req = {
         method: 'POST',
+        headers: {
+          get: (name) => null
+        },
         url: 'https://example.com/api/auth/verify-reset-token?token=valid_token_123',
         json: async () => ({})
       };
@@ -155,6 +180,9 @@ describe('Auth Verify Reset Token Endpoint', () => {
 
       const req = {
         method: 'GET',
+        headers: {
+          get: (name) => null
+        },
         url: 'https://example.com/api/auth/verify-reset-token?token=valid_token_123'
       };
 
