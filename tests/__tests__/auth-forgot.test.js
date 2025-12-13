@@ -49,6 +49,13 @@ jest.unstable_mockModule('../../netlify/functions/lib/email.js', () => ({
   sendPasswordResetEmail: jest.fn(() => Promise.resolve({ provider: 'mock', id: 'email_123' }))
 }));
 
+// Mock rate-limit to always allow requests
+jest.unstable_mockModule('../../netlify/functions/lib/rate-limit.js', () => ({
+  checkRateLimit: jest.fn(() => ({ allowed: true, remaining: 100, resetTime: Date.now() + 60000, retryAfter: 0 })),
+  rateLimitResponse: jest.fn(),
+  hashIP: jest.fn((ip) => `hashed_${ip}`)
+}));
+
 const { __clearAllStores, getStore } = await import('@netlify/blobs');
 const { sendPasswordResetEmail } = await import('../../netlify/functions/lib/email.js');
 
@@ -74,6 +81,9 @@ describe('Auth Forgot Password Endpoint', () => {
 
       const req = {
         method: 'POST',
+        headers: {
+          get: (name) => null
+        },
         json: async () => ({
           email: 'existing@example.com'
         })
@@ -92,6 +102,9 @@ describe('Auth Forgot Password Endpoint', () => {
 
       const req = {
         method: 'POST',
+        headers: {
+          get: (name) => null
+        },
         json: async () => ({
           email: 'nonexistent@example.com'
         })
@@ -110,6 +123,9 @@ describe('Auth Forgot Password Endpoint', () => {
 
       const req = {
         method: 'POST',
+        headers: {
+          get: (name) => null
+        },
         json: async () => ({
           email: 'existing@example.com'
         })
@@ -129,6 +145,9 @@ describe('Auth Forgot Password Endpoint', () => {
 
       const req = {
         method: 'POST',
+        headers: {
+          get: (name) => null
+        },
         json: async () => ({
           email: 'nonexistent@example.com'
         })
@@ -144,6 +163,9 @@ describe('Auth Forgot Password Endpoint', () => {
 
       const req = {
         method: 'POST',
+        headers: {
+          get: (name) => null
+        },
         json: async () => ({})
       };
 
@@ -159,6 +181,9 @@ describe('Auth Forgot Password Endpoint', () => {
 
       const req = {
         method: 'POST',
+        headers: {
+          get: (name) => null
+        },
         json: async () => ({
           email: 'existing@example.com'
         })
@@ -179,7 +204,10 @@ describe('Auth Forgot Password Endpoint', () => {
       const { default: handler } = await import('../../netlify/functions/auth-forgot.js');
 
       const req = {
-        method: 'OPTIONS'
+        method: 'OPTIONS',
+        headers: {
+          get: (name) => null
+        }
       };
 
       const response = await handler(req, {});
@@ -192,7 +220,10 @@ describe('Auth Forgot Password Endpoint', () => {
       const { default: handler } = await import('../../netlify/functions/auth-forgot.js');
 
       const req = {
-        method: 'GET'
+        method: 'GET',
+        headers: {
+          get: (name) => null
+        }
       };
 
       const response = await handler(req, {});
