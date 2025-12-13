@@ -43,7 +43,7 @@
   line-height: 1.25;
 }
 .stat-card .stat-label {
-  color: #495057;
+  color: #6c757d;
   font-size: 0.875rem;
   margin-top: 0.5rem;
 }
@@ -141,7 +141,7 @@
   color: #495057;
 }
 .empty-state p {
-  color: #495057;
+  color: #6c757d;
   max-width: 400px;
   margin: 0 auto 1.5rem;
 }
@@ -155,63 +155,63 @@
 }
 
 /* Dark mode styles for dashboard */
-[data-theme="dark"] .dashboard-container {
+[data-theme=dark] .dashboard-container {
   background-color: var(--zta-bg);
 }
 
-[data-theme="dark"] .stat-card {
+[data-theme=dark] .stat-card {
   background-color: var(--zta-card-bg);
   border: 1px solid var(--zta-border);
 }
 
-[data-theme="dark"] .stat-card .stat-label {
+[data-theme=dark] .stat-card .stat-label {
   color: #d4d4d8; /* Light gray for 10:1 contrast */
 }
 
-[data-theme="dark"] .stat-card .stat-value {
+[data-theme=dark] .stat-card .stat-value {
   color: #60a5fa; /* Blue-400 for good contrast */
 }
 
-[data-theme="dark"] .data-table {
+[data-theme=dark] .data-table {
   background-color: var(--zta-card-bg);
   border: 1px solid var(--zta-border);
 }
 
-[data-theme="dark"] .data-table .table th {
+[data-theme=dark] .data-table .table th {
   background-color: var(--zta-bg-tertiary);
   border-color: var(--zta-border);
   color: var(--zta-text);
 }
 
-[data-theme="dark"] .data-table .table td {
+[data-theme=dark] .data-table .table td {
   color: var(--zta-text);
   border-color: var(--zta-border);
 }
 
-[data-theme="dark"] .chart-container {
+[data-theme=dark] .chart-container {
   background-color: var(--zta-card-bg);
   border: 1px solid var(--zta-border);
 }
 
-[data-theme="dark"] .empty-state .empty-icon {
+[data-theme=dark] .empty-state .empty-icon {
   color: #6b7280; /* Gray-500 for better visibility */
 }
 
-[data-theme="dark"] .empty-state h3 {
+[data-theme=dark] .empty-state h3 {
   color: var(--zta-text);
 }
 
-[data-theme="dark"] .empty-state p {
+[data-theme=dark] .empty-state p {
   color: #d4d4d8; /* Light gray for contrast */
 }
 
-[data-theme="dark"] .site-selector .dropdown-toggle {
+[data-theme=dark] .site-selector .dropdown-toggle {
   background-color: var(--zta-input-bg);
   border-color: var(--zta-border);
   color: var(--zta-text);
 }
 
-[data-theme="dark"] .add-site-form .form-control {
+[data-theme=dark] .add-site-form .form-control {
   background-color: var(--zta-input-bg);
   border-color: var(--zta-border);
   color: var(--zta-text);
