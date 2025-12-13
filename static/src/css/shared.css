@@ -223,19 +223,35 @@ a.underlined {
 }
 
 .header {
-  background-color: red;
+  /* Transparent by default, styled via layout templates */
 }
 
 .mobile-nav {
-  background-color: green;
+  background-color: var(--bs-body-bg, #fff);
+}
+
+@media (prefers-color-scheme: dark) {
+  .mobile-nav {
+    background-color: var(--bs-dark, #212529);
+  }
 }
 
 .mobile-nav-active .mobile-nav {
-  background-color: blue;
+  background-color: var(--bs-body-bg, #fff);
 }
 
 footer {
-  background-color: yellow;
+  background-color: var(--bs-body-bg, #fff);
+  border-top: 1px solid var(--bs-border-color, #dee2e6);
+  padding-top: 2rem;
+  margin-top: 3rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  footer {
+    background-color: var(--bs-dark, #212529);
+    border-top-color: var(--bs-gray-700, #495057);
+  }
 }
 
 html, body {
