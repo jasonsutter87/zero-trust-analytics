@@ -53,7 +53,7 @@
             </div>
             <!-- Mock Chart -->
             <div class="bg-light rounded p-2 mb-3" style="height: 80px;">
-              <svg viewBox="0 0 300 60" class="w-100 h-100">
+              <svg viewBox="0 0 300 60" class="w-100 h-100" aria-hidden="true">
                 <polyline fill="none" stroke="#0d6efd" stroke-width="2" points="0,50 30,45 60,35 90,40 120,25 150,30 180,20 210,15 240,25 270,10 300,5"/>
                 <polyline fill="url(#gradient)" stroke="none" points="0,60 0,50 30,45 60,35 90,40 120,25 150,30 180,20 210,15 240,25 270,10 300,5 300,60"/>
                 <defs>
@@ -96,7 +96,7 @@
         <div class="card h-100 border-0 shadow-sm">
           <div class="card-body text-center p-4">
             <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3 mx-auto" style="width: 60px; height: 60px; line-height: 60px;">
-              <i class="fas fa-shield-alt"></i>
+              <i class="fas fa-shield-alt" aria-hidden="true"></i>
             </div>
             <h5 class="card-title">Privacy First</h5>
             <p class="card-text text-muted">No cookies, no fingerprinting, no personal data stored. GDPR compliant by design.</p>
@@ -107,7 +107,7 @@
         <div class="card h-100 border-0 shadow-sm">
           <div class="card-body text-center p-4">
             <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3 mx-auto" style="width: 60px; height: 60px; line-height: 60px;">
-              <i class="fas fa-bolt"></i>
+              <i class="fas fa-bolt" aria-hidden="true"></i>
             </div>
             <h5 class="card-title">Lightweight Script</h5>
             <p class="card-text text-muted">Under 3KB. Won't slow down your site. Uses sendBeacon for reliable tracking.</p>
@@ -118,7 +118,7 @@
         <div class="card h-100 border-0 shadow-sm">
           <div class="card-body text-center p-4">
             <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3 mx-auto" style="width: 60px; height: 60px; line-height: 60px;">
-              <i class="fas fa-eye"></i>
+              <i class="fas fa-eye" aria-hidden="true"></i>
             </div>
             <h5 class="card-title">Clear Insights</h5>
             <p class="card-text text-muted">Unique visitors, page views, top pages, and referrers. All you need, nothing you don't.</p>
@@ -136,7 +136,7 @@
     <div class="row g-4">
       <div class="col-md-4">
         <div class="d-flex align-items-start">
-          <div class="text-danger me-3"><i class="fas fa-times-circle fa-2x"></i></div>
+          <div class="text-danger me-3"><i class="fas fa-times-circle fa-2x" aria-hidden="true"></i></div>
           <div>
             <h5>No Cookies</h5>
             <p class="text-muted mb-0">We never set cookies on your visitors' browsers. Zero cookie banners needed.</p>
@@ -145,7 +145,7 @@
       </div>
       <div class="col-md-4">
         <div class="d-flex align-items-start">
-          <div class="text-danger me-3"><i class="fas fa-times-circle fa-2x"></i></div>
+          <div class="text-danger me-3"><i class="fas fa-times-circle fa-2x" aria-hidden="true"></i></div>
           <div>
             <h5>No IP Addresses</h5>
             <p class="text-muted mb-0">We never store raw IP addresses. Only one-way hashed identifiers with daily rotation.</p>
@@ -154,7 +154,7 @@
       </div>
       <div class="col-md-4">
         <div class="d-flex align-items-start">
-          <div class="text-danger me-3"><i class="fas fa-times-circle fa-2x"></i></div>
+          <div class="text-danger me-3"><i class="fas fa-times-circle fa-2x" aria-hidden="true"></i></div>
           <div>
             <h5>No Fingerprinting</h5>
             <p class="text-muted mb-0">No canvas fingerprinting, font detection, or any device fingerprinting techniques.</p>
@@ -163,7 +163,7 @@
       </div>
       <div class="col-md-4">
         <div class="d-flex align-items-start">
-          <div class="text-danger me-3"><i class="fas fa-times-circle fa-2x"></i></div>
+          <div class="text-danger me-3"><i class="fas fa-times-circle fa-2x" aria-hidden="true"></i></div>
           <div>
             <h5>No Personal Data</h5>
             <p class="text-muted mb-0">No names, emails, or any personally identifiable information stored.</p>
@@ -172,7 +172,7 @@
       </div>
       <div class="col-md-4">
         <div class="d-flex align-items-start">
-          <div class="text-danger me-3"><i class="fas fa-times-circle fa-2x"></i></div>
+          <div class="text-danger me-3"><i class="fas fa-times-circle fa-2x" aria-hidden="true"></i></div>
           <div>
             <h5>No Cross-Site Tracking</h5>
             <p class="text-muted mb-0">Visitors are never tracked across different websites. Each site is isolated.</p>
@@ -181,7 +181,7 @@
       </div>
       <div class="col-md-4">
         <div class="d-flex align-items-start">
-          <div class="text-danger me-3"><i class="fas fa-times-circle fa-2x"></i></div>
+          <div class="text-danger me-3"><i class="fas fa-times-circle fa-2x" aria-hidden="true"></i></div>
           <div>
             <h5>No Data Selling</h5>
             <p class="text-muted mb-0">Your analytics data is yours alone. We never sell or share it with third parties.</p>
@@ -218,10 +218,10 @@
       <div class="col-lg-8">
         <div class="card border-0 shadow-sm">
           <div class="card-header bg-dark text-white d-flex align-items-center">
-            <i class="fas fa-code me-2"></i>
+            <i class="fas fa-code me-2" aria-hidden="true"></i>
             <span>Quick Installation</span>
             <button class="btn btn-sm btn-outline-light ms-auto" onclick="navigator.clipboard.writeText(document.getElementById('snippet-code').textContent.trim())">
-              <i class="fas fa-copy me-1"></i>Copy
+              <i class="fas fa-copy me-1" aria-hidden="true"></i>Copy
             </button>
           </div>
           <div class="card-body bg-dark">
@@ -230,7 +230,7 @@
           </div>
           <div class="card-footer bg-light">
             <small class="text-muted">
-              <i class="fas fa-bolt text-warning me-1"></i>
+              <i class="fas fa-bolt text-warning me-1" aria-hidden="true"></i>
               Using <code>defer</code> ensures the script loads without blocking your page. Under 3KB, zero impact on Core Web Vitals.
             </small>
           </div>
@@ -250,7 +250,7 @@
     <div class="d-flex justify-content-center align-items-center gap-3 mb-5">
       <span class="fw-semibold" id="monthly-label">Monthly</span>
       <div class="form-check form-switch mb-0">
-        <input class="form-check-input" type="checkbox" role="switch" id="billing-toggle" style="width: 3rem; height: 1.5rem; cursor: pointer;">
+        <input class="form-check-input" type="checkbox" role="switch" id="billing-toggle" aria-label="Toggle between monthly and yearly billing" style="width: 3rem; height: 1.5rem; cursor: pointer;">
       </div>
       <span class="fw-semibold" id="yearly-label">Yearly <span class="badge bg-success">Save 17%</span></span>
     </div>
@@ -267,10 +267,10 @@
             <p class="text-muted small"><span class="price-period">per month</span></p>
             <hr>
             <ul class="list-unstyled text-start mb-4">
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i><strong>10k</strong> pageviews/mo</li>
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i>Unlimited sites</li>
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i>Real-time dashboard</li>
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i>API access</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i><strong>10k</strong> pageviews/mo</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Unlimited sites</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Real-time dashboard</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i>API access</li>
             </ul>
             <a href="/register/?plan=solo" class="btn btn-outline-primary w-100">Start Free Trial</a>
           </div>
@@ -287,10 +287,10 @@
             <p class="text-muted small"><span class="price-period">per month</span></p>
             <hr>
             <ul class="list-unstyled text-start mb-4">
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i><strong>50k</strong> pageviews/mo</li>
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i>Unlimited sites</li>
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i>Real-time dashboard</li>
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i>API access</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i><strong>50k</strong> pageviews/mo</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Unlimited sites</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Real-time dashboard</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i>API access</li>
             </ul>
             <a href="/register/?plan=starter" class="btn btn-outline-primary w-100">Start Free Trial</a>
           </div>
@@ -310,11 +310,11 @@
             <p class="text-muted small"><span class="price-period">per month</span></p>
             <hr>
             <ul class="list-unstyled text-start mb-4">
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i><strong>100k</strong> pageviews/mo</li>
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i>Unlimited sites</li>
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i>Real-time dashboard</li>
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i>API access</li>
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i>Email reports</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i><strong>100k</strong> pageviews/mo</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Unlimited sites</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Real-time dashboard</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i>API access</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Email reports</li>
             </ul>
             <a href="/register/?plan=pro" class="btn btn-primary w-100">Start Free Trial</a>
           </div>
@@ -331,11 +331,11 @@
             <p class="text-muted small"><span class="price-period">per month</span></p>
             <hr>
             <ul class="list-unstyled text-start mb-4">
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i><strong>1M</strong> pageviews/mo</li>
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i>Unlimited sites</li>
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i>Priority support</li>
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i>Team members</li>
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i>Custom domains</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i><strong>1M</strong> pageviews/mo</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Unlimited sites</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Priority support</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Team members</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Custom domains</li>
             </ul>
             <a href="/register/?plan=business" class="btn btn-outline-primary w-100">Start Free Trial</a>
           </div>
@@ -352,11 +352,11 @@
             <p class="text-muted small"><span class="price-period">per month</span></p>
             <hr>
             <ul class="list-unstyled text-start mb-4">
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i><strong>10M</strong> pageviews/mo</li>
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i>Unlimited sites</li>
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i>Priority support</li>
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i>White-label option</li>
-              <li class="py-1"><i class="fas fa-check text-success me-2"></i>Extended retention</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i><strong>10M</strong> pageviews/mo</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Unlimited sites</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Priority support</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i>White-label option</li>
+              <li class="py-1"><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Extended retention</li>
             </ul>
             <a href="/register/?plan=scale" class="btn btn-outline-primary w-100">Start Free Trial</a>
           </div>
@@ -417,7 +417,7 @@
             </tbody>
           </table>
         </div>
-        <p class="text-center text-muted mt-3"><i class="fas fa-info-circle me-1"></i>Our advantage: <strong>Unlimited sites on every tier.</strong> Perfect for agencies, freelancers, and multi-site owners.</p>
+        <p class="text-center text-muted mt-3"><i class="fas fa-info-circle me-1" aria-hidden="true"></i>Our advantage: <strong>Unlimited sites on every tier.</strong> Perfect for agencies, freelancers, and multi-site owners.</p>
       </div>
     </div>
   </div>

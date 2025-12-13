@@ -758,7 +758,8 @@ ZTA.track('download', { file: 'report.pdf' });</code></pre>
             <div class="card-body">
               <div class="row g-2">
                 <div class="col-md-5">
-                  <input type="email" class="form-control" id="invite-email" placeholder="colleague@company.com">
+                  <label for="invite-email" class="visually-hidden">Email address of team member to invite</label>
+                  <input type="email" class="form-control" id="invite-email" placeholder="colleague@company.com" aria-label="Email address of team member to invite">
                 </div>
                 <div class="col-md-4">
                   <select class="form-select" id="invite-role">
