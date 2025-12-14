@@ -10,5 +10,6 @@ export default {
     '!<rootDir>/netlify/functions/node_modules/**'
   ],
   coverageDirectory: '<rootDir>/tests/coverage',
-  verbose: true
+  verbose: true,
+  setupFilesAfterEnv: ['<rootDir>/tests/jest.setup.js']
 };

@@ -63,6 +63,24 @@ export async function updateUser(email, updates) {
   return updated;
 }
 
+// Find user by Stripe customer ID
+export async function getUserByCustomerId(customerId) {
+  const users = store(STORES.USERS);
+  try {
+    const { blobs } = await users.list();
+    for (const blob of blobs) {
+      const user = await users.get(blob.key, { type: 'json' });
+      if (user?.subscription?.customerId === customerId) {
+        return { email: blob.key, ...user };
+      }
+    }
+    return null;
+  } catch (e) {
+    console.error('Error finding user by customer ID:', e);
+    return null;
+  }
+}
+
 // Check user's subscription/trial status
 export function getUserStatus(user) {
   if (!user) {

@@ -1,5 +1,5 @@
 import Stripe from 'stripe';
-import { getUser, updateUser } from './lib/storage.js';
+import { getUser, updateUser, getUserByCustomerId } from './lib/storage.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -48,21 +48,65 @@ export default async function handler(req, context) {
 
       case 'customer.subscription.updated': {
         const subscription = event.data.object;
-        // Find user by customer ID and update status
-        // This is a simplified version - in production you'd want to store
-        // a mapping of Stripe customer IDs to user emails
+        const user = await getUserByCustomerId(subscription.customer);
+
+        if (user) {
+          // Map Stripe subscription status to our status
+          const statusMap = {
+            'active': 'active',
+            'past_due': 'past_due',
+            'canceled': 'canceled',
+            'unpaid': 'unpaid',
+            'trialing': 'active',
+            'incomplete': 'incomplete',
+            'incomplete_expired': 'expired',
+            'paused': 'paused'
+          };
+
+          await updateUser(user.email, {
+            subscription: {
+              ...user.subscription,
+              status: statusMap[subscription.status] || subscription.status,
+              currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString(),
+              cancelAtPeriodEnd: subscription.cancel_at_period_end,
+              updatedAt: new Date().toISOString()
+            }
+          });
+        }
         break;
       }
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object;
-        // In production, find user and update subscription status to 'canceled'
+        const user = await getUserByCustomerId(subscription.customer);
+
+        if (user) {
+          await updateUser(user.email, {
+            subscription: {
+              ...user.subscription,
+              status: 'canceled',
+              canceledAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            }
+          });
+        }
         break;
       }
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object;
-        // In production, notify user and/or update subscription status
+        const user = await getUserByCustomerId(invoice.customer);
+
+        if (user) {
+          await updateUser(user.email, {
+            subscription: {
+              ...user.subscription,
+              status: 'past_due',
+              lastPaymentError: invoice.last_finalization_error?.message || 'Payment failed',
+              updatedAt: new Date().toISOString()
+            }
+          });
+        }
         break;
       }
 
