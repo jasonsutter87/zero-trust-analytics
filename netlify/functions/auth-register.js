@@ -1,32 +1,10 @@
 import { hashPassword, createToken, corsPreflightResponse, successResponse, Errors, getSecurityHeaders, createAuthResponse } from './lib/auth.js';
 import { createUser, getUser } from './lib/storage.js';
 import { generateSiteId } from './lib/hash.js';
-import { checkRateLimit, rateLimitResponse, hashIP } from './lib/rate-limit.js';
+import { checkRateLimit, rateLimitResponse, hashIP, getEndpointConfig } from './lib/rate-limit.js';
 import { createFunctionLogger } from './lib/logger.js';
 import { handleError, ValidationError, ConflictError } from './lib/error-handler.js';
-
-// SECURITY: Strong password validation
-function validatePassword(password) {
-  const errors = [];
-
-  if (password.length < 12) {
-    errors.push('Password must be at least 12 characters');
-  }
-  if (!/[a-z]/.test(password)) {
-    errors.push('Password must contain at least one lowercase letter');
-  }
-  if (!/[A-Z]/.test(password)) {
-    errors.push('Password must contain at least one uppercase letter');
-  }
-  if (!/[0-9]/.test(password)) {
-    errors.push('Password must contain at least one number');
-  }
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-    errors.push('Password must contain at least one special character');
-  }
-
-  return errors;
-}
+import { validateRequest, authRegisterSchema } from './lib/schemas.js';
 
 export default async function handler(req, context) {
   const origin = req.headers.get('origin');
@@ -43,48 +21,28 @@ export default async function handler(req, context) {
     return Errors.methodNotAllowed();
   }
 
-  // Rate limiting for registration: 5 attempts per minute per IP
+  // Rate limiting for registration: Uses endpoint-specific config
   const clientIP = context.ip || req.headers.get('x-forwarded-for') || 'unknown';
   const rateLimitKey = `register_${hashIP(clientIP)}`;
-  const rateLimit = checkRateLimit(rateLimitKey, { limit: 5, windowMs: 60000 });
+  const { limit, windowMs } = getEndpointConfig('register');
+  const rateLimit = await checkRateLimit(rateLimitKey, { limit, windowMs });
 
   if (!rateLimit.allowed) {
     logger.warn('Rate limit exceeded for registration', {
-      remainingTime: rateLimit.resetIn,
-      limit: 5
+      retryAfter: rateLimit.retryAfter,
+      limit
     });
-    return rateLimitResponse(rateLimit);
+    return rateLimitResponse(rateLimit, limit);
   }
 
   try {
-    const { email, password, plan } = await req.json();
+    const body = await req.json();
 
-    if (!email || !password) {
-      logger.warn('Missing required fields');
-      return Errors.validationError('Email and password required');
-    }
+    // SECURITY: Comprehensive input validation with sanitization
+    const validated = validateRequest(authRegisterSchema, body, logger);
+    const { email, password, plan } = validated;
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      logger.warn('Invalid email format provided');
-      return Errors.validationError('Invalid email format');
-    }
-
-    // Validate plan if provided
-    const validPlans = ['solo', 'starter', 'pro', 'business', 'scale'];
-    const selectedPlan = validPlans.includes(plan) ? plan : 'pro';
-
-    logger.debug('Validating password requirements', { selectedPlan });
-
-    // SECURITY: Strong password validation
-    const passwordErrors = validatePassword(password);
-    if (passwordErrors.length > 0) {
-      logger.warn('Password validation failed', {
-        errorCount: passwordErrors.length
-      });
-      return Errors.validationError('Password does not meet requirements', passwordErrors);
-    }
+    logger.debug('Input validation successful', { plan });
 
     // Check if user exists
     const existing = await getUser(email);
@@ -98,18 +56,18 @@ export default async function handler(req, context) {
       });
     }
 
-    logger.info('Creating new user', { plan: selectedPlan });
+    logger.info('Creating new user', { plan });
 
     // Create user with selected plan and 14-day trial
     const passwordHash = await hashPassword(password);
-    const user = await createUser(email, passwordHash, selectedPlan);
+    const user = await createUser(email, passwordHash, plan);
 
     // Create JWT token
     const token = createToken({ id: user.id, email: user.email });
 
     logger.info('User registration successful', {
       userId: user.id,
-      plan: selectedPlan,
+      plan: plan,
       hasTrialPeriod: !!user.trialEndsAt
     });
 

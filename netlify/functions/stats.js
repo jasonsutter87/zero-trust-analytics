@@ -3,6 +3,7 @@ import { getUserSites } from './lib/storage.js';
 import { getStats } from './lib/turso.js';
 import { createFunctionLogger } from './lib/logger.js';
 import { handleError, ValidationError, ForbiddenError } from './lib/error-handler.js';
+import { validateRequest, statsQuerySchema, validateDateRangeInData } from './lib/schemas.js';
 
 export default async function handler(req, context) {
   const origin = req.headers.get('origin');
@@ -37,17 +38,18 @@ export default async function handler(req, context) {
 
   try {
     const url = new URL(req.url);
-    const siteId = url.searchParams.get('siteId');
-    const period = url.searchParams.get('period') || '7d';
-    const customStart = url.searchParams.get('startDate');
-    const customEnd = url.searchParams.get('endDate');
+    const queryParams = {
+      siteId: url.searchParams.get('siteId'),
+      period: url.searchParams.get('period'),
+      startDate: url.searchParams.get('startDate'),
+      endDate: url.searchParams.get('endDate')
+    };
 
-    if (!siteId) {
-      logger.warn('Stats request missing site ID', {
-        userId: auth.user.id
-      });
-      return Errors.validationError('Site ID required');
-    }
+    // SECURITY: Comprehensive input validation with sanitization
+    const validated = validateRequest(statsQuerySchema, queryParams, logger);
+    const { siteId, period, startDate: customStart, endDate: customEnd } = validated;
+
+    logger.debug('Input validation successful', { siteId, period });
 
     // Verify user owns this site
     const userSites = await getUserSites(auth.user.id);
@@ -71,8 +73,10 @@ export default async function handler(req, context) {
     let endDate, startDate;
 
     if (customStart && customEnd) {
-      startDate = new Date(customStart);
-      endDate = new Date(customEnd);
+      // Additional validation for custom date range
+      const dateRangeValidation = validateDateRangeInData({ startDate: customStart, endDate: customEnd });
+      startDate = dateRangeValidation.startDate || new Date(customStart);
+      endDate = dateRangeValidation.endDate || new Date(customEnd);
     } else {
       endDate = new Date();
       startDate = new Date();

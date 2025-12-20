@@ -1,8 +1,9 @@
 import { verifyPassword, createToken, Errors, corsPreflightResponse, successResponse, getSecurityHeaders, createAuthResponse } from './lib/auth.js';
 import { getUser } from './lib/storage.js';
-import { checkRateLimit, rateLimitResponse, hashIP } from './lib/rate-limit.js';
+import { checkRateLimit, rateLimitResponse, hashIP, getEndpointConfig } from './lib/rate-limit.js';
 import { createFunctionLogger } from './lib/logger.js';
 import { handleError, AuthError, ValidationError } from './lib/error-handler.js';
+import { validateRequest, authLoginSchema } from './lib/schemas.js';
 
 export default async function handler(req, context) {
   const origin = req.headers.get('origin');
@@ -19,28 +20,28 @@ export default async function handler(req, context) {
     return Errors.methodNotAllowed();
   }
 
-  // Strict rate limiting for login: 10 attempts per minute per IP
+  // Strict rate limiting for login: Uses endpoint-specific config
   const clientIP = context.ip || req.headers.get('x-forwarded-for') || 'unknown';
   const rateLimitKey = `login_${hashIP(clientIP)}`;
-  const rateLimit = checkRateLimit(rateLimitKey, { limit: 10, windowMs: 60000 });
+  const { limit, windowMs } = getEndpointConfig('login');
+  const rateLimit = await checkRateLimit(rateLimitKey, { limit, windowMs });
 
   if (!rateLimit.allowed) {
     logger.warn('Rate limit exceeded', {
-      remainingTime: rateLimit.resetIn,
-      limit: 10
+      retryAfter: rateLimit.retryAfter,
+      limit
     });
-    return rateLimitResponse(rateLimit);
+    return rateLimitResponse(rateLimit, limit);
   }
 
   try {
-    const { email, password } = await req.json();
+    const body = await req.json();
 
-    if (!email || !password) {
-      logger.warn('Missing required fields');
-      return Errors.validationError('Email and password required');
-    }
+    // SECURITY: Comprehensive input validation with sanitization
+    const validated = validateRequest(authLoginSchema, body, logger);
+    const { email, password } = validated;
 
-    logger.debug('Attempting to retrieve user');
+    logger.debug('Input validation successful, attempting to retrieve user');
 
     // Get user
     const user = await getUser(email);

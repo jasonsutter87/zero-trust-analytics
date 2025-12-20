@@ -1,23 +1,30 @@
 import Stripe from 'stripe';
 import { authenticateRequest, corsPreflightResponse, successResponse, Errors, getSecurityHeaders } from './lib/auth.js';
 import { getUser } from './lib/storage.js';
+import { createFunctionLogger } from './lib/logger.js';
+import { handleError } from './lib/error-handler.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export default async function handler(req, context) {
+  const logger = createFunctionLogger('stripe-checkout', req, context);
   const origin = req.headers.get('origin');
+
+  logger.info('Stripe checkout request received');
 
   if (req.method === 'OPTIONS') {
     return corsPreflightResponse(origin, 'POST, OPTIONS');
   }
 
   if (req.method !== 'POST') {
+    logger.warn('Invalid HTTP method', { method: req.method });
     return Errors.methodNotAllowed();
   }
 
   // Authenticate
   const auth = authenticateRequest(Object.fromEntries(req.headers));
   if (auth.error) {
+    logger.warn('Authentication failed', { error: auth.error });
     return new Response(JSON.stringify({ error: auth.error }), {
       status: auth.status,
       headers: getSecurityHeaders(origin)
@@ -29,8 +36,11 @@ export default async function handler(req, context) {
 
     // Check if already subscribed
     if (user.subscription && user.subscription.status === 'active') {
+      logger.warn('Checkout failed - already subscribed', { userId: user.id });
       return Errors.badRequest('Already subscribed');
     }
+
+    logger.info('Creating Stripe checkout session', { userId: user.id });
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
@@ -51,10 +61,11 @@ export default async function handler(req, context) {
       }
     });
 
+    logger.info('Stripe checkout session created successfully', { userId: user.id, sessionId: session.id });
     return successResponse({ url: session.url }, 200, origin);
   } catch (err) {
-    console.error('Stripe checkout error:', err);
-    return Errors.internalError('Failed to create checkout session');
+    logger.error('Stripe checkout failed', err, { userId: auth.user.id });
+    return handleError(err, logger, origin);
   }
 }
 

@@ -56,16 +56,64 @@ const OPTIONAL_VARS = {
     errorMessage: 'NODE_ENV must be one of: development, production, test'
   },
   RATE_LIMIT_MAX: {
-    description: 'Maximum number of requests per window',
+    description: 'Maximum number of requests per window (default)',
     default: '100',
     validator: (value) => !isNaN(parseInt(value)) && parseInt(value) > 0,
     errorMessage: 'RATE_LIMIT_MAX must be a positive integer'
   },
   RATE_LIMIT_WINDOW: {
-    description: 'Rate limit window in milliseconds',
+    description: 'Rate limit window in milliseconds (default)',
     default: '900000', // 15 minutes
     validator: (value) => !isNaN(parseInt(value)) && parseInt(value) > 0,
     errorMessage: 'RATE_LIMIT_WINDOW must be a positive integer'
+  },
+  RATE_LIMIT_LOGIN_MAX: {
+    description: 'Maximum login attempts per window',
+    default: '10',
+    validator: (value) => !isNaN(parseInt(value)) && parseInt(value) > 0,
+    errorMessage: 'RATE_LIMIT_LOGIN_MAX must be a positive integer'
+  },
+  RATE_LIMIT_LOGIN_WINDOW: {
+    description: 'Login rate limit window in milliseconds',
+    default: '60000', // 1 minute
+    validator: (value) => !isNaN(parseInt(value)) && parseInt(value) > 0,
+    errorMessage: 'RATE_LIMIT_LOGIN_WINDOW must be a positive integer'
+  },
+  RATE_LIMIT_REGISTER_MAX: {
+    description: 'Maximum registration attempts per window',
+    default: '5',
+    validator: (value) => !isNaN(parseInt(value)) && parseInt(value) > 0,
+    errorMessage: 'RATE_LIMIT_REGISTER_MAX must be a positive integer'
+  },
+  RATE_LIMIT_REGISTER_WINDOW: {
+    description: 'Registration rate limit window in milliseconds',
+    default: '60000', // 1 minute
+    validator: (value) => !isNaN(parseInt(value)) && parseInt(value) > 0,
+    errorMessage: 'RATE_LIMIT_REGISTER_WINDOW must be a positive integer'
+  },
+  RATE_LIMIT_TRACK_MAX: {
+    description: 'Maximum tracking requests per window',
+    default: '1000',
+    validator: (value) => !isNaN(parseInt(value)) && parseInt(value) > 0,
+    errorMessage: 'RATE_LIMIT_TRACK_MAX must be a positive integer'
+  },
+  RATE_LIMIT_TRACK_WINDOW: {
+    description: 'Tracking rate limit window in milliseconds',
+    default: '60000', // 1 minute
+    validator: (value) => !isNaN(parseInt(value)) && parseInt(value) > 0,
+    errorMessage: 'RATE_LIMIT_TRACK_WINDOW must be a positive integer'
+  },
+  RATE_LIMIT_API_MAX: {
+    description: 'Maximum API requests per window',
+    default: '100',
+    validator: (value) => !isNaN(parseInt(value)) && parseInt(value) > 0,
+    errorMessage: 'RATE_LIMIT_API_MAX must be a positive integer'
+  },
+  RATE_LIMIT_API_WINDOW: {
+    description: 'API rate limit window in milliseconds',
+    default: '60000', // 1 minute
+    validator: (value) => !isNaN(parseInt(value)) && parseInt(value) > 0,
+    errorMessage: 'RATE_LIMIT_API_WINDOW must be a positive integer'
   },
   SESSION_MAX_AGE: {
     description: 'Maximum session age in seconds',
@@ -184,6 +232,14 @@ try {
       NODE_ENV: 'test',
       RATE_LIMIT_MAX: '100',
       RATE_LIMIT_WINDOW: '900000',
+      RATE_LIMIT_LOGIN_MAX: '10',
+      RATE_LIMIT_LOGIN_WINDOW: '60000',
+      RATE_LIMIT_REGISTER_MAX: '5',
+      RATE_LIMIT_REGISTER_WINDOW: '60000',
+      RATE_LIMIT_TRACK_MAX: '1000',
+      RATE_LIMIT_TRACK_WINDOW: '60000',
+      RATE_LIMIT_API_MAX: '100',
+      RATE_LIMIT_API_WINDOW: '60000',
       SESSION_MAX_AGE: '604800',
       MFA_ISSUER: 'Zero Trust Analytics'
     };
@@ -229,7 +285,25 @@ export const Config = {
   // Rate Limiting
   rateLimit: {
     max: parseInt(config.RATE_LIMIT_MAX),
-    window: parseInt(config.RATE_LIMIT_WINDOW)
+    window: parseInt(config.RATE_LIMIT_WINDOW),
+    endpoints: {
+      login: {
+        max: parseInt(config.RATE_LIMIT_LOGIN_MAX),
+        window: parseInt(config.RATE_LIMIT_LOGIN_WINDOW)
+      },
+      register: {
+        max: parseInt(config.RATE_LIMIT_REGISTER_MAX),
+        window: parseInt(config.RATE_LIMIT_REGISTER_WINDOW)
+      },
+      track: {
+        max: parseInt(config.RATE_LIMIT_TRACK_MAX),
+        window: parseInt(config.RATE_LIMIT_TRACK_WINDOW)
+      },
+      api: {
+        max: parseInt(config.RATE_LIMIT_API_MAX),
+        window: parseInt(config.RATE_LIMIT_API_WINDOW)
+      }
+    }
   },
 
   // Session
