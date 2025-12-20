@@ -1,20 +1,18 @@
+import { corsPreflightResponse, Errors } from './lib/auth.js';
+
 // Google OAuth configuration
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || `${process.env.URL}/api/auth/callback/google`;
 
 export default async function handler(req, context) {
+  const origin = req.headers.get('origin');
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204,
-      headers: { 'Access-Control-Allow-Origin': '*' }
-    });
+    return corsPreflightResponse(origin, 'GET, OPTIONS');
   }
 
   if (!GOOGLE_CLIENT_ID) {
-    return new Response(JSON.stringify({ error: 'Google OAuth not configured' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return Errors.internalError('Google OAuth not configured');
   }
 
   // Get plan from query params (for signup flow)

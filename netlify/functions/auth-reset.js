@@ -1,24 +1,27 @@
-import { hashPassword } from './lib/auth.js';
+import { hashPassword, corsPreflightResponse, successResponse, Errors, getSecurityHeaders } from './lib/auth.js';
 import { getPasswordResetToken, deletePasswordResetToken, updateUser } from './lib/storage.js';
 import { checkRateLimit, rateLimitResponse, hashIP } from './lib/rate-limit.js';
 
+// SECURITY: Strong password validation (same as register)
+function validatePassword(password) {
+  const errors = [];
+  if (password.length < 12) errors.push('Password must be at least 12 characters');
+  if (!/[a-z]/.test(password)) errors.push('Password must contain at least one lowercase letter');
+  if (!/[A-Z]/.test(password)) errors.push('Password must contain at least one uppercase letter');
+  if (!/[0-9]/.test(password)) errors.push('Password must contain at least one number');
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) errors.push('Password must contain at least one special character');
+  return errors;
+}
+
 export default async function handler(req, context) {
+  const origin = req.headers.get('origin');
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      }
-    });
+    return corsPreflightResponse(origin, 'POST, OPTIONS');
   }
 
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return Errors.methodNotAllowed();
   }
 
   // Rate limit by IP - strict limit for password reset (5 per minute)
@@ -34,26 +37,19 @@ export default async function handler(req, context) {
     const { token, password } = await req.json();
 
     if (!token || !password) {
-      return new Response(JSON.stringify({ error: 'Token and password are required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return Errors.validationError('Token and password are required');
     }
 
-    if (password.length < 8) {
-      return new Response(JSON.stringify({ error: 'Password must be at least 8 characters' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    // SECURITY: Strong password validation
+    const passwordErrors = validatePassword(password);
+    if (passwordErrors.length > 0) {
+      return Errors.validationError('Password does not meet requirements', passwordErrors);
     }
 
     // Validate token
     const tokenData = await getPasswordResetToken(token);
     if (!tokenData) {
-      return new Response(JSON.stringify({ error: 'Invalid or expired reset link' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return Errors.badRequest('Invalid or expired reset link');
     }
 
     // Hash new password
@@ -62,31 +58,19 @@ export default async function handler(req, context) {
     // Update user's password
     const updated = await updateUser(tokenData.email, { passwordHash });
     if (!updated) {
-      return new Response(JSON.stringify({ error: 'Failed to update password' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return Errors.internalError('Failed to update password');
     }
 
     // Delete the used token (one-time use)
     await deletePasswordResetToken(token);
 
-    return new Response(JSON.stringify({
+    return successResponse({
       success: true,
       message: 'Password has been reset successfully'
-    }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+    }, 200, origin);
   } catch (err) {
     console.error('Reset password error:', err);
-    return new Response(JSON.stringify({ error: 'An error occurred' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return Errors.internalError('An error occurred');
   }
 }
 

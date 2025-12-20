@@ -1,4 +1,4 @@
-import { createToken } from './lib/auth.js';
+import { createToken, Errors } from './lib/auth.js';
 import { getUser, createOAuthUser, updateUser } from './lib/storage.js';
 
 // OAuth configuration

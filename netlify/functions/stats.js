@@ -1,25 +1,17 @@
-import { authenticateRequest } from './lib/auth.js';
+import { authenticateRequest, corsPreflightResponse, successResponse, Errors, getSecurityHeaders } from './lib/auth.js';
 import { getUserSites } from './lib/storage.js';
 import { getStats } from './lib/turso.js';
 
 export default async function handler(req, context) {
+  const origin = req.headers.get('origin');
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-      }
-    });
+    return corsPreflightResponse(origin, 'GET, OPTIONS');
   }
 
   if (req.method !== 'GET') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return Errors.methodNotAllowed();
   }
 
   // Authenticate
@@ -27,7 +19,7 @@ export default async function handler(req, context) {
   if (auth.error) {
     return new Response(JSON.stringify({ error: auth.error }), {
       status: auth.status,
-      headers: { 'Content-Type': 'application/json' }
+      headers: getSecurityHeaders(origin)
     });
   }
 
@@ -39,19 +31,13 @@ export default async function handler(req, context) {
     const customEnd = url.searchParams.get('endDate');
 
     if (!siteId) {
-      return new Response(JSON.stringify({ error: 'Site ID required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return Errors.validationError('Site ID required');
     }
 
     // Verify user owns this site
     const userSites = await getUserSites(auth.user.id);
     if (!userSites.includes(siteId)) {
-      return new Response(JSON.stringify({ error: 'Access denied' }), {
-        status: 403,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return Errors.forbidden('Access denied');
     }
 
     // Calculate date range
@@ -92,19 +78,10 @@ export default async function handler(req, context) {
     // Query database for stats
     const stats = await getStats(siteId, startStr, endStr);
 
-    return new Response(JSON.stringify(stats), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+    return successResponse(stats, 200, origin);
   } catch (err) {
     console.error('Stats error:', err.message, err.stack);
-    return new Response(JSON.stringify({ error: 'Internal error', debug: err.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return Errors.internalError('Internal error');
   }
 }
 

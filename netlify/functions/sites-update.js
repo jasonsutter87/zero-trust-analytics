@@ -1,59 +1,42 @@
-import jwt from 'jsonwebtoken';
+import { authenticateRequest, corsPreflightResponse, successResponse, Errors, getSecurityHeaders } from './lib/auth.js';
 import { getSite, updateSite, getUser } from './lib/storage.js';
 
 export default async function handler(req, context) {
+  const origin = req.headers.get('origin');
+
+  if (req.method === 'OPTIONS') {
+    return corsPreflightResponse(origin, 'POST, OPTIONS');
+  }
+
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' }
+    return Errors.methodNotAllowed();
+  }
+
+  // Authenticate using shared helper
+  const auth = authenticateRequest(Object.fromEntries(req.headers));
+  if (auth.error) {
+    return new Response(JSON.stringify({ error: auth.error }), {
+      status: auth.status,
+      headers: getSecurityHeaders(origin)
     });
   }
 
   try {
-    // Verify auth
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
-    const token = authHeader.split(' ')[1];
-    let decoded;
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
-    } catch {
-      return new Response(JSON.stringify({ error: 'Invalid token' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
     const { siteId, domain, nickname } = await req.json();
 
     if (!siteId) {
-      return new Response(JSON.stringify({ error: 'Site ID required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return Errors.validationError('Site ID required');
     }
 
     // Verify site belongs to user
     const site = await getSite(siteId);
     if (!site) {
-      return new Response(JSON.stringify({ error: 'Site not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return Errors.notFound('Site');
     }
 
-    const user = await getUser(decoded.email);
+    const user = await getUser(auth.user.email);
     if (!user || site.userId !== user.id) {
-      return new Response(JSON.stringify({ error: 'Not authorized to update this site' }), {
-        status: 403,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return Errors.forbidden('Not authorized to update this site');
     }
 
     // Build update object
@@ -67,17 +50,10 @@ export default async function handler(req, context) {
 
     const updated = await updateSite(siteId, updates);
 
-    return new Response(JSON.stringify({ success: true, site: updated }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
-
+    return successResponse({ success: true, site: updated }, 200, origin);
   } catch (err) {
     console.error('Update site error:', err);
-    return new Response(JSON.stringify({ error: 'Internal error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return Errors.internalError('Internal error');
   }
 }
 

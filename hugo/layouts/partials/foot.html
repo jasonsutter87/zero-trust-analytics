@@ -11,9 +11,14 @@
 <script src="{{ "src/js/shared/validators.js" | relURL }}"></script>
 <script src="{{ "src/js/shared/form-handler.js" | relURL }}"></script>
 
-{{ if eq .Section "dashboard" }}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-{{ end }}
+<!-- Initialize auth UI state -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof updateAuthUI === 'function') {
+      updateAuthUI();
+    }
+  });
+</script>
 
 {{ range .Params.js }}
   <script defer src="{{ "src/js/" | relURL }}{{ . }}"></script>

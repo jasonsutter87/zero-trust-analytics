@@ -1,20 +1,18 @@
+import { corsPreflightResponse, Errors } from './lib/auth.js';
+
 // GitHub OAuth configuration
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 const GITHUB_REDIRECT_URI = process.env.GITHUB_REDIRECT_URI || `${process.env.URL}/api/auth/callback/github`;
 
 export default async function handler(req, context) {
+  const origin = req.headers.get('origin');
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204,
-      headers: { 'Access-Control-Allow-Origin': '*' }
-    });
+    return corsPreflightResponse(origin, 'GET, OPTIONS');
   }
 
   if (!GITHUB_CLIENT_ID) {
-    return new Response(JSON.stringify({ error: 'GitHub OAuth not configured' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return Errors.internalError('GitHub OAuth not configured');
   }
 
   // Get plan from query params (for signup flow)

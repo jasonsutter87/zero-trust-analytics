@@ -1,25 +1,40 @@
-import { hashPassword, createToken } from './lib/auth.js';
+import { hashPassword, createToken, corsPreflightResponse, successResponse, Errors, getSecurityHeaders } from './lib/auth.js';
 import { createUser, getUser } from './lib/storage.js';
 import { generateSiteId } from './lib/hash.js';
 import { checkRateLimit, rateLimitResponse, hashIP } from './lib/rate-limit.js';
 
+// SECURITY: Strong password validation
+function validatePassword(password) {
+  const errors = [];
+
+  if (password.length < 12) {
+    errors.push('Password must be at least 12 characters');
+  }
+  if (!/[a-z]/.test(password)) {
+    errors.push('Password must contain at least one lowercase letter');
+  }
+  if (!/[A-Z]/.test(password)) {
+    errors.push('Password must contain at least one uppercase letter');
+  }
+  if (!/[0-9]/.test(password)) {
+    errors.push('Password must contain at least one number');
+  }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    errors.push('Password must contain at least one special character');
+  }
+
+  return errors;
+}
+
 export default async function handler(req, context) {
+  const origin = req.headers.get('origin');
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      }
-    });
+    return corsPreflightResponse(origin, 'POST, OPTIONS');
   }
 
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return Errors.methodNotAllowed();
   }
 
   // Rate limiting for registration: 5 attempts per minute per IP
@@ -35,21 +50,23 @@ export default async function handler(req, context) {
     const { email, password, plan } = await req.json();
 
     if (!email || !password) {
-      return new Response(JSON.stringify({ error: 'Email and password required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return Errors.validationError('Email and password required');
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return Errors.validationError('Invalid email format');
     }
 
     // Validate plan if provided
     const validPlans = ['solo', 'starter', 'pro', 'business', 'scale'];
     const selectedPlan = validPlans.includes(plan) ? plan : 'pro';
 
-    if (password.length < 8) {
-      return new Response(JSON.stringify({ error: 'Password must be at least 8 characters' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    // SECURITY: Strong password validation
+    const passwordErrors = validatePassword(password);
+    if (passwordErrors.length > 0) {
+      return Errors.validationError('Password does not meet requirements', passwordErrors);
     }
 
     // Check if user exists
@@ -57,7 +74,7 @@ export default async function handler(req, context) {
     if (existing) {
       return new Response(JSON.stringify({ error: 'Email already registered' }), {
         status: 409,
-        headers: { 'Content-Type': 'application/json' }
+        headers: getSecurityHeaders(origin)
       });
     }
 
@@ -68,7 +85,7 @@ export default async function handler(req, context) {
     // Create JWT token
     const token = createToken({ id: user.id, email: user.email });
 
-    return new Response(JSON.stringify({
+    return successResponse({
       success: true,
       token,
       user: {
@@ -77,19 +94,10 @@ export default async function handler(req, context) {
         plan: user.plan,
         trialEndsAt: user.trialEndsAt
       }
-    }), {
-      status: 201,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+    }, 201, origin);
   } catch (err) {
     console.error('Register error:', err);
-    return new Response(JSON.stringify({ error: 'Registration failed' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return Errors.internalError('Registration failed');
   }
 }
 

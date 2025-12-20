@@ -1,17 +1,12 @@
 import { TOTP, Secret } from 'otpauth';
-import { authenticateRequest, createToken, Errors } from './lib/auth.js';
+import { authenticateRequest, createToken, corsPreflightResponse, successResponse, Errors, getSecurityHeaders } from './lib/auth.js';
 import { getUser, updateUser } from './lib/storage.js';
 
 export default async function handler(req, context) {
+  const origin = req.headers.get('origin');
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-      }
-    });
+    return corsPreflightResponse(origin, 'POST, OPTIONS');
   }
 
   if (req.method !== 'POST') {
@@ -29,7 +24,7 @@ export default async function handler(req, context) {
       if (auth.error) {
         return new Response(JSON.stringify({ error: auth.error }), {
           status: auth.status,
-          headers: { 'Content-Type': 'application/json' }
+          headers: getSecurityHeaders(origin)
         });
       }
 
@@ -60,18 +55,12 @@ export default async function handler(req, context) {
         twoFactorEnabled: false
       });
 
-      return new Response(JSON.stringify({
+      return successResponse({
         success: true,
         secret: secret.base32,
         qrCode: qrCodeUri,
         message: 'Scan the QR code with your authenticator app, then verify with a code'
-      }), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
+      }, 200, origin);
     }
 
     // POST /api/auth/2fa/verify - Verify TOTP code and enable 2FA
@@ -80,7 +69,7 @@ export default async function handler(req, context) {
       if (auth.error) {
         return new Response(JSON.stringify({ error: auth.error }), {
           status: auth.status,
-          headers: { 'Content-Type': 'application/json' }
+          headers: getSecurityHeaders(origin)
         });
       }
 
@@ -118,16 +107,10 @@ export default async function handler(req, context) {
         twoFactorEnabled: true
       });
 
-      return new Response(JSON.stringify({
+      return successResponse({
         success: true,
         message: 'Two-factor authentication enabled successfully'
-      }), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
+      }, 200, origin);
     }
 
     // POST /api/auth/2fa/disable - Disable 2FA (requires code)
@@ -136,7 +119,7 @@ export default async function handler(req, context) {
       if (auth.error) {
         return new Response(JSON.stringify({ error: auth.error }), {
           status: auth.status,
-          headers: { 'Content-Type': 'application/json' }
+          headers: getSecurityHeaders(origin)
         });
       }
 
@@ -175,16 +158,10 @@ export default async function handler(req, context) {
         twoFactorSecret: null
       });
 
-      return new Response(JSON.stringify({
+      return successResponse({
         success: true,
         message: 'Two-factor authentication disabled'
-      }), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
+      }, 200, origin);
     }
 
     // POST /api/auth/2fa/validate - Validate code during login
@@ -230,7 +207,7 @@ export default async function handler(req, context) {
       // Create full JWT token
       const token = createToken({ id: user.id, email: user.email });
 
-      return new Response(JSON.stringify({
+      return successResponse({
         success: true,
         token,
         user: {
@@ -238,13 +215,7 @@ export default async function handler(req, context) {
           email: user.email,
           subscription: user.subscription
         }
-      }), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
+      }, 200, origin);
     }
 
     return Errors.badRequest('Invalid action. Use: setup, verify, disable, or validate');

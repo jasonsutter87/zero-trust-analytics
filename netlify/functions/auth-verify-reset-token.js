@@ -1,23 +1,16 @@
 import { getPasswordResetToken } from './lib/storage.js';
 import { checkRateLimit, rateLimitResponse, hashIP } from './lib/rate-limit.js';
+import { corsPreflightResponse, successResponse, Errors } from './lib/auth.js';
 
 export default async function handler(req, context) {
+  const origin = req.headers.get('origin');
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      }
-    });
+    return corsPreflightResponse(origin, 'GET, OPTIONS');
   }
 
   if (req.method !== 'GET') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return Errors.methodNotAllowed();
   }
 
   // Rate limit by IP (10 per minute)
@@ -34,43 +27,22 @@ export default async function handler(req, context) {
     const token = url.searchParams.get('token');
 
     if (!token) {
-      return new Response(JSON.stringify({ error: 'Token is required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return Errors.validationError('Token is required');
     }
 
     // Validate token (without consuming it)
     const tokenData = await getPasswordResetToken(token);
     if (!tokenData) {
-      return new Response(JSON.stringify({
-        valid: false,
-        error: 'Invalid or expired reset link'
-      }), {
-        status: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
+      return Errors.badRequest('Invalid or expired reset link');
     }
 
-    return new Response(JSON.stringify({
+    return successResponse({
       valid: true,
       expiresAt: tokenData.expiresAt
-    }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+    }, 200, origin);
   } catch (err) {
     console.error('Verify token error:', err);
-    return new Response(JSON.stringify({ error: 'An error occurred' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return Errors.internalError('An error occurred');
   }
 }
 

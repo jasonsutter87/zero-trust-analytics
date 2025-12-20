@@ -1,17 +1,12 @@
-import { verifyPassword, createToken, Errors } from './lib/auth.js';
+import { verifyPassword, createToken, Errors, corsPreflightResponse, successResponse, getSecurityHeaders } from './lib/auth.js';
 import { getUser } from './lib/storage.js';
 import { checkRateLimit, rateLimitResponse, hashIP } from './lib/rate-limit.js';
 
 export default async function handler(req, context) {
+  const origin = req.headers.get('origin');
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      }
-    });
+    return corsPreflightResponse(origin, 'POST, OPTIONS');
   }
 
   if (req.method !== 'POST') {
@@ -56,23 +51,17 @@ export default async function handler(req, context) {
         { expiresIn: '5m' }
       );
 
-      return new Response(JSON.stringify({
+      return successResponse({
         success: true,
         requires_2fa: true,
         tempToken
-      }), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
+      }, 200, origin);
     }
 
     // Create JWT token (no 2FA required)
     const token = createToken({ id: user.id, email: user.email });
 
-    return new Response(JSON.stringify({
+    return successResponse({
       success: true,
       token,
       user: {
@@ -80,13 +69,7 @@ export default async function handler(req, context) {
         email: user.email,
         subscription: user.subscription
       }
-    }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+    }, 200, origin);
   } catch (err) {
     console.error('Login error:', err);
     return Errors.internalError('Login failed');
