@@ -11,20 +11,11 @@ interface RegisterFormProps {
   redirectTo?: string
 }
 
-type Plan = 'solo' | 'pro' | 'team'
-
-const plans: { id: Plan; name: string; description: string }[] = [
-  { id: 'solo', name: 'Solo', description: 'For personal projects' },
-  { id: 'pro', name: 'Pro', description: 'For growing businesses' },
-  { id: 'team', name: 'Team', description: 'For teams and agencies' },
-]
-
 export function RegisterForm({ onSuccess, redirectTo = '/dashboard' }: RegisterFormProps) {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [selectedPlan, setSelectedPlan] = useState<Plan>('solo')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -66,7 +57,7 @@ export function RegisterForm({ onSuccess, redirectTo = '/dashboard' }: RegisterF
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, plan: selectedPlan }),
+        body: JSON.stringify({ email, password }),
       })
 
       const data = await res.json()
@@ -131,34 +122,9 @@ export function RegisterForm({ onSuccess, redirectTo = '/dashboard' }: RegisterF
           disabled={loading}
         />
 
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            Select a Plan
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            {plans.map((plan) => (
-              <button
-                key={plan.id}
-                type="button"
-                onClick={() => setSelectedPlan(plan.id)}
-                disabled={loading}
-                className={`p-3 rounded-lg border text-left transition-colors ${
-                  selectedPlan === plan.id
-                    ? 'border-primary bg-primary/10'
-                    : 'border-border hover:border-primary/50'
-                }`}
-              >
-                <div className="font-medium text-sm">{plan.name}</div>
-                <div className="text-xs text-muted-foreground">
-                  {plan.description}
-                </div>
-              </button>
-            ))}
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            All plans include a 14-day free trial. No credit card required.
-          </p>
-        </div>
+        <p className="text-xs text-muted-foreground text-center">
+          Sign up for free. No credit card required.
+        </p>
 
         <Button
           type="submit"
